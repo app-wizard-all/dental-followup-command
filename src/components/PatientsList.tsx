@@ -5,92 +5,117 @@ import { Clock, Phone, Mail, CheckCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-
-// Sample data for patients who cancelled next day appointments
-const cancelledPatients = [
-  { 
-    id: 1, 
-    name: "Sarah Johnson", 
-    phone: "(555) 123-4567", 
-    email: "sarah.j@example.com", 
-    procedure: "Tooth Extraction",
-    status: "Not Contacted",
-    priority: "high"
-  },
-  { 
-    id: 2, 
-    name: "Michael Chen", 
-    phone: "(555) 987-6543", 
-    email: "m.chen@example.com", 
-    procedure: "Cleaning",
-    status: "Not Contacted",
-    priority: "medium"
-  },
-  { 
-    id: 3, 
-    name: "Emily Williams", 
-    phone: "(555) 456-7890", 
-    email: "e.williams@example.com", 
-    procedure: "Filling",
-    status: "Not Contacted",
-    priority: "medium"
-  },
-  { 
-    id: 4, 
-    name: "David Taylor", 
-    phone: "(555) 321-6547", 
-    email: "d.taylor@example.com", 
-    procedure: "Crown",
-    status: "Not Contacted",
-    priority: "high"
-  },
-  { 
-    id: 5, 
-    name: "Jessica Brown", 
-    phone: "(555) 789-0123", 
-    email: "j.brown@example.com", 
-    procedure: "Consultation",
-    status: "Not Contacted",
-    priority: "low"
-  }
-];
+import { useTomorrowCancellations, useContactPatient, OpenDentalCancellation } from "@/services/openDentalApi";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function PatientsList() {
   const { toast } = useToast();
+  const { data: cancellations, isLoading, error } = useTomorrowCancellations();
+  const contactPatientMutation = useContactPatient();
 
-  const handleCall = (patient: typeof cancelledPatients[0]) => {
-    toast({
-      title: "Calling patient",
-      description: `Initiating call to ${patient.name}`,
-    });
+  const handleCall = (patient: OpenDentalCancellation) => {
+    contactPatientMutation.mutate(
+      { patientId: patient.patientId, method: 'phone' },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Calling patient",
+            description: `Initiating call to ${patient.patientName}`,
+          });
+        },
+        onError: (error) => {
+          toast({
+            title: "Call failed",
+            description: "Unable to initiate call. Please try again.",
+            variant: "destructive",
+          });
+          console.error("Call error:", error);
+        }
+      }
+    );
   };
 
-  const handleEmail = (patient: typeof cancelledPatients[0]) => {
-    toast({
-      title: "Email sent",
-      description: `Follow-up email sent to ${patient.name}`,
-    });
+  const handleEmail = (patient: OpenDentalCancellation) => {
+    contactPatientMutation.mutate(
+      { patientId: patient.patientId, method: 'email' },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Email sent",
+            description: `Follow-up email sent to ${patient.patientName}`,
+          });
+        },
+        onError: (error) => {
+          toast({
+            title: "Email failed",
+            description: "Unable to send email. Please try again.",
+            variant: "destructive",
+          });
+          console.error("Email error:", error);
+        }
+      }
+    );
   };
 
-  const handleMarkAsContacted = (patient: typeof cancelledPatients[0]) => {
+  const handleMarkAsContacted = (patient: OpenDentalCancellation) => {
     toast({
       title: "Status updated",
-      description: `${patient.name} marked as contacted`,
+      description: `${patient.patientName} marked as contacted`,
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="p-3 rounded-md border bg-white">
+            <div className="flex justify-between items-start">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-40" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <Skeleton className="h-4 w-20" />
+            </div>
+            <div className="flex gap-1 mt-4">
+              <Skeleton className="h-7 w-16" />
+              <Skeleton className="h-7 w-16" />
+              <Skeleton className="h-7 w-24 ml-auto" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 rounded-md bg-red-50 text-red-600 border border-red-200">
+        <p>Unable to load cancellations. Please try again later.</p>
+        <p className="text-xs mt-1">Error: {error instanceof Error ? error.message : "Unknown error"}</p>
+      </div>
+    );
+  }
+
+  if (!cancellations || cancellations.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        No cancellations for tomorrow
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      {cancelledPatients.map((patient) => (
+      {cancellations.map((patient) => (
         <div 
-          key={patient.id} 
+          key={patient.appointmentId} 
           className="p-3 rounded-md border bg-white flex flex-col gap-2"
         >
           <div className="flex justify-between items-start">
             <div>
               <h3 className="font-medium flex items-center gap-1">
-                {patient.name}
-                {patient.priority === "high" && (
+                {patient.patientName}
+                {patient.cancellationReason === "Personal emergency" && (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
@@ -103,7 +128,10 @@ export function PatientsList() {
                   </TooltipProvider>
                 )}
               </h3>
-              <p className="text-xs text-muted-foreground">{patient.procedure}</p>
+              <p className="text-xs text-muted-foreground">{patient.procedureDescription}</p>
+              {patient.notes && (
+                <p className="text-xs mt-1 italic">{patient.notes}</p>
+              )}
             </div>
             <div className="flex items-center">
               <Clock className="h-3 w-3 text-muted-foreground mr-1" />
@@ -116,6 +144,7 @@ export function PatientsList() {
               size="sm" 
               className="h-7 px-2 text-xs"
               onClick={() => handleCall(patient)}
+              disabled={contactPatientMutation.isPending}
             >
               <Phone className="h-3 w-3 mr-1" />
               Call
@@ -125,6 +154,7 @@ export function PatientsList() {
               size="sm" 
               className="h-7 px-2 text-xs"
               onClick={() => handleEmail(patient)}
+              disabled={contactPatientMutation.isPending}
             >
               <Mail className="h-3 w-3 mr-1" />
               Email

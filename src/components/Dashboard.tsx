@@ -19,7 +19,8 @@ import {
   Mail, 
   Search,
   AlertCircle,
-  PlusCircle
+  PlusCircle,
+  Loader2
 } from "lucide-react";
 import { PatientsList } from "@/components/PatientsList";
 import { StatCard } from "@/components/StatCard";
@@ -28,14 +29,37 @@ import { TaskList } from "@/components/TaskList";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useDashboardStats, useTomorrowCancellations, useContactPatient } from "@/services/openDentalApi";
 
 export function Dashboard() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   
+  const { data: stats, isLoading: statsLoading } = useDashboardStats();
+  const { data: cancellations, isLoading: cancellationsLoading } = useTomorrowCancellations();
+  const contactPatientMutation = useContactPatient();
+  
   const handleCreateTask = () => {
     setIsTaskFormOpen(true);
+  };
+  
+  const handleContactAll = (method: 'phone' | 'email') => {
+    if (!cancellations || cancellations.length === 0) {
+      toast({
+        title: "No patients to contact",
+        description: "There are no cancelled appointments to follow up on.",
+      });
+      return;
+    }
+    
+    toast({
+      title: method === 'phone' ? "Calling all patients" : "Emailing all patients",
+      description: `Initiating bulk ${method === 'phone' ? 'calls' : 'emails'} to ${cancellations.length} patients`,
+    });
+    
+    // In a real implementation, we would use Promise.all to contact all patients
+    // and handle success/error for each one
   };
 
   return (
@@ -43,21 +67,23 @@ export function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard 
           title="Today's Follow-ups" 
-          value={12} 
+          value={statsLoading ? 0 : (stats?.todaysFollowUps || 0)} 
           icon={<CheckCircle className="h-5 w-5 text-green-500" />}
-          description="4 pending, 8 completed"
+          description={statsLoading 
+            ? "Loading..." 
+            : `${stats?.pendingFollowUps || 0} pending, ${stats?.completedFollowUps || 0} completed`}
           bgColor="bg-green-50"
         />
         <StatCard 
           title="Next Day Cancellations" 
-          value={5} 
+          value={cancellationsLoading ? 0 : (cancellations?.length || 0)} 
           icon={<Clock className="h-5 w-5 text-amber-500" />}
           description="Needs follow-up" 
           bgColor="bg-amber-50"
         />
         <StatCard 
           title="Urgent Tasks" 
-          value={3} 
+          value={statsLoading ? 0 : (stats?.urgentTasks || 0)} 
           icon={<AlertCircle className="h-5 w-5 text-red-500" />}
           description="High priority" 
           bgColor="bg-red-50"
@@ -132,7 +158,9 @@ export function Dashboard() {
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-dental-blue" />
               Next Day Cancellations
-              <Badge variant="destructive" className="ml-2">5</Badge>
+              {!cancellationsLoading && cancellations && cancellations.length > 0 && (
+                <Badge variant="destructive" className="ml-2">{cancellations.length}</Badge>
+              )}
             </CardTitle>
             <CardDescription>Patients who cancelled tomorrow's appointments</CardDescription>
           </CardHeader>
@@ -140,12 +168,30 @@ export function Dashboard() {
             <PatientsList />
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button variant="outline" className="flex items-center gap-1">
-              <Phone className="h-4 w-4" />
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-1" 
+              onClick={() => handleContactAll('phone')}
+              disabled={cancellationsLoading || !cancellations || cancellations.length === 0 || contactPatientMutation.isPending}
+            >
+              {contactPatientMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Phone className="h-4 w-4" />
+              )}
               Call All
             </Button>
-            <Button variant="outline" className="flex items-center gap-1">
-              <Mail className="h-4 w-4" />
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-1" 
+              onClick={() => handleContactAll('email')}
+              disabled={cancellationsLoading || !cancellations || cancellations.length === 0 || contactPatientMutation.isPending}
+            >
+              {contactPatientMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Mail className="h-4 w-4" />
+              )}
               Email All
             </Button>
           </CardFooter>

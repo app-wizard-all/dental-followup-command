@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,11 +25,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useCreateFollowUpTask } from "@/services/openDentalApi";
 
 const formSchema = z.object({
   patientName: z.string().min(2, {
     message: "Patient name must be at least 2 characters.",
   }),
+  patientId: z.string().optional(),
   contactInfo: z.string().min(5, {
     message: "Contact information is required.",
   }),
@@ -42,6 +43,7 @@ const formSchema = z.object({
     required_error: "A due date is required.",
   }),
   notes: z.string().optional(),
+  appointmentId: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -51,20 +53,47 @@ interface TaskFormProps {
 }
 
 export function TaskForm({ onSave }: TaskFormProps) {
+  const createTaskMutation = useCreateFollowUpTask();
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       patientName: "",
+      patientId: "",
       contactInfo: "",
       followUpType: "",
       priority: "medium",
       notes: "",
+      appointmentId: "",
     },
   });
 
   function onSubmit(data: FormValues) {
-    console.log(data);
-    onSave();
+    // Format the date as YYYY-MM-DD for the API
+    const formattedDueDate = format(data.dueDate, 'yyyy-MM-dd');
+    
+    createTaskMutation.mutate(
+      {
+        patientId: data.patientId || `P${Math.floor(Math.random() * 10000)}`, // Generate a random ID for demo
+        patientName: data.patientName,
+        followUpType: data.followUpType,
+        dueDate: formattedDueDate,
+        status: "pending",
+        priority: data.priority,
+        contactInfo: data.contactInfo,
+        notes: data.notes || "",
+        appointmentId: data.appointmentId
+      },
+      {
+        onSuccess: () => {
+          onSave();
+        },
+        onError: (error) => {
+          console.error("Failed to create task:", error);
+          // Form will show validation errors automatically
+        }
+      }
+    );
   }
 
   return (
@@ -207,10 +236,20 @@ export function TaskForm({ onSave }: TaskFormProps) {
         />
 
         <div className="flex justify-end space-x-2 pt-4">
-          <Button type="button" variant="outline" onClick={onSave}>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onSave}
+            disabled={createTaskMutation.isPending}
+          >
             Cancel
           </Button>
-          <Button type="submit">Create Task</Button>
+          <Button 
+            type="submit"
+            disabled={createTaskMutation.isPending}
+          >
+            {createTaskMutation.isPending ? "Creating..." : "Create Task"}
+          </Button>
         </div>
       </form>
     </Form>

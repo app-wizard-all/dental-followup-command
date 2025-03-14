@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { 
   Phone, 
@@ -9,7 +9,8 @@ import {
   Clock,
   XCircle,
   Calendar,
-  MoreHorizontal 
+  MoreHorizontal,
+  Loader2
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -19,70 +20,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-
-// Sample follow-up tasks data
-const initialTasks = [
-  { 
-    id: 1, 
-    patientName: "Sarah Johnson", 
-    followUpType: "cancellation", 
-    dueDate: "2023-06-15", 
-    status: "pending", 
-    priority: "high",
-    contactInfo: "(555) 123-4567",
-    notes: "Patient requested a call back to reschedule."
-  },
-  { 
-    id: 2, 
-    patientName: "Michael Chen", 
-    followUpType: "reschedule", 
-    dueDate: "2023-06-16", 
-    status: "pending", 
-    priority: "medium",
-    contactInfo: "(555) 987-6543",
-    notes: "Patient needs to reschedule due to work conflict."
-  },
-  { 
-    id: 3, 
-    patientName: "Emily Williams", 
-    followUpType: "treatment", 
-    dueDate: "2023-06-15", 
-    status: "completed", 
-    priority: "medium",
-    contactInfo: "(555) 456-7890",
-    notes: "Called to check on recovery after wisdom tooth extraction."
-  },
-  { 
-    id: 4, 
-    patientName: "David Taylor", 
-    followUpType: "payment", 
-    dueDate: "2023-06-17", 
-    status: "pending", 
-    priority: "high",
-    contactInfo: "(555) 321-6547",
-    notes: "Outstanding balance of $450 - needs to discuss payment plan."
-  },
-  { 
-    id: 5, 
-    patientName: "Jessica Brown", 
-    followUpType: "cancellation", 
-    dueDate: "2023-06-15", 
-    status: "cancelled", 
-    priority: "low",
-    contactInfo: "(555) 789-0123",
-    notes: "Appointment cancelled due to illness."
-  },
-  { 
-    id: 6, 
-    patientName: "Robert Martinez", 
-    followUpType: "treatment", 
-    dueDate: "2023-06-16", 
-    status: "pending", 
-    priority: "medium",
-    contactInfo: "(555) 234-5678",
-    notes: "Follow up on crown placement."
-  },
-];
+import { 
+  useFollowUpTasks, 
+  useUpdateFollowUpTask, 
+  useContactPatient,
+  FollowUpTask
+} from "@/services/openDentalApi";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface TaskListProps {
   filter: "all" | "pending" | "completed" | "cancelled";
@@ -91,10 +35,12 @@ interface TaskListProps {
 
 export function TaskList({ filter, searchQuery }: TaskListProps) {
   const { toast } = useToast();
-  const [tasks, setTasks] = useState(initialTasks);
+  const { data: tasks, isLoading, error } = useFollowUpTasks();
+  const updateTaskMutation = useUpdateFollowUpTask();
+  const contactPatientMutation = useContactPatient();
 
   // Filter tasks based on filter and search query
-  const filteredTasks = tasks.filter(task => {
+  const filteredTasks = !tasks ? [] : tasks.filter(task => {
     // First apply status filter
     if (filter !== "all" && task.status !== filter) {
       return false;
@@ -106,24 +52,61 @@ export function TaskList({ filter, searchQuery }: TaskListProps) {
       return (
         task.patientName.toLowerCase().includes(query) || 
         task.followUpType.toLowerCase().includes(query) ||
-        task.contactInfo.toLowerCase().includes(query)
+        task.contactInfo.toLowerCase().includes(query) ||
+        (task.notes && task.notes.toLowerCase().includes(query))
       );
     }
     
     return true;
   });
 
-  const updateTaskStatus = (taskId: number, newStatus: string) => {
-    const updatedTasks = tasks.map(task => 
-      task.id === taskId ? { ...task, status: newStatus } : task
+  const updateTaskStatus = (taskId: string, newStatus: string) => {
+    updateTaskMutation.mutate(
+      { 
+        taskId, 
+        updates: { status: newStatus } 
+      },
+      {
+        onSuccess: (updatedTask) => {
+          toast({
+            title: "Task updated",
+            description: `${updatedTask.patientName}'s task marked as ${newStatus}`,
+          });
+        },
+        onError: (error) => {
+          toast({
+            title: "Update failed",
+            description: "Failed to update task status. Please try again.",
+            variant: "destructive",
+          });
+          console.error("Failed to update task:", error);
+        }
+      }
     );
-    setTasks(updatedTasks);
-    
-    const task = tasks.find(t => t.id === taskId);
-    toast({
-      title: "Task updated",
-      description: `${task?.patientName}'s task marked as ${newStatus}`,
-    });
+  };
+
+  const handleContactPatient = (task: FollowUpTask, method: 'phone' | 'email') => {
+    contactPatientMutation.mutate(
+      { patientId: task.patientId, method },
+      {
+        onSuccess: () => {
+          toast({
+            title: method === 'phone' ? "Calling patient" : "Email sent",
+            description: method === 'phone' 
+              ? `Initiating call to ${task.patientName}` 
+              : `Email sent to ${task.patientName}`,
+          });
+        },
+        onError: (error) => {
+          toast({
+            title: "Contact failed",
+            description: `Failed to ${method === 'phone' ? 'call' : 'email'} patient. Please try again.`,
+            variant: "destructive",
+          });
+          console.error("Contact error:", error);
+        }
+      }
+    );
   };
 
   const getStatusBadge = (status: string) => {
@@ -153,6 +136,44 @@ export function TaskList({ filter, searchQuery }: TaskListProps) {
         return <Clock className="h-4 w-4 text-gray-500" />;
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="p-4 rounded-lg border bg-white">
+            <div className="flex justify-between items-start">
+              <div className="flex items-start gap-3">
+                <Skeleton className="h-5 w-5 rounded-full" />
+                <div>
+                  <Skeleton className="h-5 w-40 mb-2" />
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-3 w-56" />
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-4">
+              <Skeleton className="h-8 w-20" />
+              <Skeleton className="h-8 w-20" />
+              <Skeleton className="h-8 w-32 ml-auto" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8 text-red-500">
+        Error loading tasks: {error instanceof Error ? error.message : "Unknown error"}
+      </div>
+    );
+  }
 
   if (filteredTasks.length === 0) {
     return (
@@ -200,28 +221,28 @@ export function TaskList({ filter, searchQuery }: TaskListProps) {
               variant="outline" 
               size="sm" 
               className="h-8"
-              onClick={() => {
-                toast({
-                  title: "Calling patient",
-                  description: `Initiating call to ${task.patientName}`,
-                });
-              }}
+              onClick={() => handleContactPatient(task, 'phone')}
+              disabled={contactPatientMutation.isPending || updateTaskMutation.isPending}
             >
-              <Phone className="h-3 w-3 mr-2" />
+              {contactPatientMutation.isPending ? (
+                <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+              ) : (
+                <Phone className="h-3 w-3 mr-2" />
+              )}
               Call
             </Button>
             <Button 
               variant="outline" 
               size="sm" 
               className="h-8"
-              onClick={() => {
-                toast({
-                  title: "Email sent",
-                  description: `Email sent to ${task.patientName}`,
-                });
-              }}
+              onClick={() => handleContactPatient(task, 'email')}
+              disabled={contactPatientMutation.isPending || updateTaskMutation.isPending}
             >
-              <Mail className="h-3 w-3 mr-2" />
+              {contactPatientMutation.isPending ? (
+                <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+              ) : (
+                <Mail className="h-3 w-3 mr-2" />
+              )}
               Email
             </Button>
             
@@ -231,8 +252,13 @@ export function TaskList({ filter, searchQuery }: TaskListProps) {
                 size="sm" 
                 className="h-8 ml-auto"
                 onClick={() => updateTaskStatus(task.id, "completed")}
+                disabled={updateTaskMutation.isPending}
               >
-                <CheckCircle className="h-3 w-3 mr-2" />
+                {updateTaskMutation.isPending ? (
+                  <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                ) : (
+                  <CheckCircle className="h-3 w-3 mr-2" />
+                )}
                 Mark Complete
               </Button>
             )}
@@ -245,17 +271,26 @@ export function TaskList({ filter, searchQuery }: TaskListProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {task.status !== "completed" && (
-                  <DropdownMenuItem onClick={() => updateTaskStatus(task.id, "completed")}>
+                  <DropdownMenuItem 
+                    onClick={() => updateTaskStatus(task.id, "completed")}
+                    disabled={updateTaskMutation.isPending}
+                  >
                     Mark as Completed
                   </DropdownMenuItem>
                 )}
                 {task.status !== "cancelled" && (
-                  <DropdownMenuItem onClick={() => updateTaskStatus(task.id, "cancelled")}>
+                  <DropdownMenuItem 
+                    onClick={() => updateTaskStatus(task.id, "cancelled")}
+                    disabled={updateTaskMutation.isPending}
+                  >
                     Mark as Cancelled
                   </DropdownMenuItem>
                 )}
                 {task.status !== "pending" && (
-                  <DropdownMenuItem onClick={() => updateTaskStatus(task.id, "pending")}>
+                  <DropdownMenuItem 
+                    onClick={() => updateTaskStatus(task.id, "pending")}
+                    disabled={updateTaskMutation.isPending}
+                  >
                     Mark as Pending
                   </DropdownMenuItem>
                 )}
