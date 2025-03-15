@@ -1,34 +1,39 @@
 
-import React from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React, { useState } from "react";
 import { FollowUpsTab } from "@/components/tabs/FollowUpsTab";
 import { InventoryTab } from "@/components/tabs/InventoryTab";
 import { StaffTab } from "@/components/tabs/StaffTab";
 import { BillingTab } from "@/components/tabs/BillingTab";
 
-export function OfficeManagerDashboard() {
+// Available sections that can be displayed
+export type DashboardSection = "followups" | "inventory" | "staff" | "billing";
+
+interface OfficeManagerDashboardProps {
+  initialSection?: DashboardSection;
+}
+
+export function OfficeManagerDashboard({ initialSection = "followups" }: OfficeManagerDashboardProps) {
+  const [activeSection, setActiveSection] = useState<DashboardSection>(initialSection);
+
+  // Function to render the active section content
+  const renderSectionContent = () => {
+    switch (activeSection) {
+      case "followups":
+        return <FollowUpsTab />;
+      case "inventory":
+        return <InventoryTab />;
+      case "staff":
+        return <StaffTab />;
+      case "billing":
+        return <BillingTab />;
+      default:
+        return <FollowUpsTab />;
+    }
+  };
+
   return (
     <div className="space-y-4">
-      <Tabs defaultValue="followups" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="followups">Follow-ups</TabsTrigger>
-          <TabsTrigger value="inventory">Inventory</TabsTrigger>
-          <TabsTrigger value="staff">Staff Management</TabsTrigger>
-          <TabsTrigger value="billing">Billing & Accounting</TabsTrigger>
-        </TabsList>
-        <TabsContent value="followups" className="mt-6">
-          <FollowUpsTab />
-        </TabsContent>
-        <TabsContent value="inventory" className="mt-6">
-          <InventoryTab />
-        </TabsContent>
-        <TabsContent value="staff" className="mt-6">
-          <StaffTab />
-        </TabsContent>
-        <TabsContent value="billing" className="mt-6">
-          <BillingTab />
-        </TabsContent>
-      </Tabs>
+      {renderSectionContent()}
     </div>
   );
 }

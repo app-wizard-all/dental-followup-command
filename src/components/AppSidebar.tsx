@@ -22,32 +22,40 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
+import { useNavigate, useLocation } from "react-router-dom";
+import { DashboardSection } from "./OfficeManagerDashboard";
+
 // Menu items
 const items = [
   {
     title: "Dashboard",
     url: "/",
     icon: Home,
+    section: "followups" as DashboardSection,
   },
   {
     title: "Follow-ups",
-    url: "#",
+    url: "/?section=followups",
     icon: CheckSquare,
+    section: "followups" as DashboardSection,
   },
   {
     title: "Inventory",
-    url: "#",
+    url: "/?section=inventory",
     icon: PackageOpen,
+    section: "inventory" as DashboardSection,
   },
   {
     title: "Staff Management",
-    url: "#",
+    url: "/?section=staff",
     icon: Users,
+    section: "staff" as DashboardSection,
   },
   {
     title: "Billing & Accounting",
-    url: "#",
+    url: "/?section=billing",
     icon: DollarSign,
+    section: "billing" as DashboardSection,
   },
   {
     title: "Settings",
@@ -57,6 +65,22 @@ const items = [
 ];
 
 export function AppSidebar() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const currentSection = searchParams.get('section') || "followups";
+
+  const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, url: string, section?: DashboardSection) => {
+    e.preventDefault();
+    
+    if (section) {
+      // Update URL with section param
+      navigate(`/?section=${section}`);
+    } else {
+      navigate(url);
+    }
+  };
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -80,9 +104,10 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <a 
                       href={item.url} 
-                      className={`${item.title === "Follow-ups" ? "bg-dental-blue text-white" : ""}`}
+                      className={`${item.section === currentSection ? "bg-dental-blue text-white" : ""}`}
+                      onClick={(e) => handleNavigation(e, item.url, item.section)}
                     >
-                      <item.icon className={`${item.title === "Follow-ups" ? "text-white" : ""}`} />
+                      <item.icon className={`${item.section === currentSection ? "text-white" : ""}`} />
                       <span>{item.title}</span>
                     </a>
                   </SidebarMenuButton>

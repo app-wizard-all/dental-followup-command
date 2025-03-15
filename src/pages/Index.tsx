@@ -1,11 +1,16 @@
 
+import { useLocation } from "react-router-dom";
 import { Layout } from "@/components/Layout";
-import { OfficeManagerDashboard } from "@/components/OfficeManagerDashboard";
+import { OfficeManagerDashboard, DashboardSection } from "@/components/OfficeManagerDashboard";
 
 const Index = () => {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const section = (searchParams.get('section') || 'followups') as DashboardSection;
+
   return (
     <Layout>
-      <OfficeManagerDashboard />
+      <OfficeManagerDashboard initialSection={section} />
     </Layout>
   );
 };
