@@ -1,4 +1,5 @@
-import React from "react";
+
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -50,9 +51,10 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface TaskFormProps {
   onSave: () => void;
+  defaultCategory?: string;
 }
 
-export function TaskForm({ onSave }: TaskFormProps) {
+export function TaskForm({ onSave, defaultCategory }: TaskFormProps) {
   const createTaskMutation = useCreateFollowUpTask();
   
   const form = useForm<FormValues>({
@@ -61,12 +63,19 @@ export function TaskForm({ onSave }: TaskFormProps) {
       patientName: "",
       patientId: "",
       contactInfo: "",
-      followUpType: "",
+      followUpType: defaultCategory || "",
       priority: "medium",
       notes: "",
       appointmentId: "",
     },
   });
+
+  // Update form when defaultCategory changes
+  useEffect(() => {
+    if (defaultCategory) {
+      form.setValue('followUpType', defaultCategory);
+    }
+  }, [defaultCategory, form]);
 
   function onSubmit(data: FormValues) {
     // Format the date as YYYY-MM-DD for the API
@@ -87,6 +96,15 @@ export function TaskForm({ onSave }: TaskFormProps) {
       {
         onSuccess: () => {
           onSave();
+          form.reset({
+            patientName: "",
+            patientId: "",
+            contactInfo: "",
+            followUpType: defaultCategory || "",
+            priority: "medium",
+            notes: "",
+            appointmentId: "",
+          });
         },
         onError: (error) => {
           console.error("Failed to create task:", error);

@@ -8,14 +8,20 @@ import { TaskLoadingSkeleton } from "./task/TaskLoadingSkeleton";
 interface TaskListProps {
   filter: "all" | "pending" | "completed" | "cancelled";
   searchQuery: string;
+  category?: string;
 }
 
-export function TaskList({ filter, searchQuery }: TaskListProps) {
+export function TaskList({ filter, searchQuery, category }: TaskListProps) {
   const { data: tasks, isLoading, error } = useFollowUpTasks();
 
-  // Filter tasks based on filter and search query
+  // Filter tasks based on filter, search query, and category
   const filteredTasks = !tasks ? [] : tasks.filter(task => {
-    // First apply status filter
+    // First apply category filter if specified
+    if (category && task.followUpType !== category) {
+      return false;
+    }
+    
+    // Then apply status filter
     if (filter !== "all" && task.status !== filter) {
       return false;
     }
