@@ -1,12 +1,82 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, CreditCard, Receipt, FileText } from "lucide-react";
+import { 
+  DollarSign, 
+  CreditCard, 
+  Receipt, 
+  FileText,
+  Percent,
+  Wallet,
+  Search 
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
 
 export function BillingTab() {
+  const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Handle category change
+  const handleCategoryChange = (category: string) => {
+    setActiveCategory(category);
+    setSearchQuery("");
+  };
+
   return (
     <div className="space-y-6">
+      <NavigationMenu className="mb-2">
+        <NavigationMenuList>
+          <NavigationMenuItem>
+            <NavigationMenuLink
+              className={navigationMenuTriggerStyle() + (activeCategory === "all" ? " bg-accent" : "")}
+              onClick={() => handleCategoryChange("all")}
+            >
+              All Transactions
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+          
+          <NavigationMenuItem>
+            <NavigationMenuLink
+              className={navigationMenuTriggerStyle() + (activeCategory === "payments" ? " bg-accent" : "")}
+              onClick={() => handleCategoryChange("payments")}
+            >
+              <CreditCard className="h-4 w-4 mr-2" />
+              Payments
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+          
+          <NavigationMenuItem>
+            <NavigationMenuLink
+              className={navigationMenuTriggerStyle() + (activeCategory === "insurance" ? " bg-accent" : "")}
+              onClick={() => handleCategoryChange("insurance")}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Insurance Claims
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+          
+          <NavigationMenuItem>
+            <NavigationMenuLink
+              className={navigationMenuTriggerStyle() + (activeCategory === "invoices" ? " bg-accent" : "")}
+              onClick={() => handleCategoryChange("invoices")}
+            >
+              <Receipt className="h-4 w-4 mr-2" />
+              Invoices
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+      </NavigationMenu>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -54,23 +124,58 @@ export function BillingTab() {
         </Card>
       </div>
       
+      <div className="flex items-center gap-4 mb-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder={`Search ${activeCategory === "all" ? "transactions" : activeCategory}...`}
+            className="pl-8"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
+      
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Recent Transactions</CardTitle>
+            <CardTitle>
+              {activeCategory === "all" ? "Recent Transactions" : 
+               activeCategory === "payments" ? "Payment History" :
+               activeCategory === "insurance" ? "Insurance Claims" : "Invoices"}
+            </CardTitle>
             <Button size="sm">
-              <FileText className="h-4 w-4 mr-2" />
-              Generate Report
+              {activeCategory === "insurance" ? (
+                <>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Submit Claim
+                </>
+              ) : activeCategory === "invoices" ? (
+                <>
+                  <Receipt className="h-4 w-4 mr-2" />
+                  Create Invoice
+                </>
+              ) : (
+                <>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Generate Report
+                </>
+              )}
             </Button>
           </div>
           <CardDescription>
-            Review recent financial transactions
+            {activeCategory === "insurance" ? "Track and manage insurance claims" : 
+             activeCategory === "invoices" ? "Manage invoices and billing" :
+             activeCategory === "payments" ? "Review payment history" : "Review recent financial transactions"}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
             <div className="p-4 text-center text-muted-foreground">
-              Transaction data will appear here
+              {activeCategory === "all" ? "Transaction data" : 
+               activeCategory === "payments" ? "Payment history" :
+               activeCategory === "insurance" ? "Insurance claims" : "Invoice data"} will appear here
             </div>
           </div>
         </CardContent>
