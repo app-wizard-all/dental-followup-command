@@ -1,5 +1,6 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { FollowUpsTab } from "@/components/tabs/FollowUpsTab";
 import { InventoryTab } from "@/components/tabs/InventoryTab";
 import { StaffTab } from "@/components/tabs/StaffTab";
@@ -14,6 +15,17 @@ interface OfficeManagerDashboardProps {
 
 export function OfficeManagerDashboard({ initialSection = "followups" }: OfficeManagerDashboardProps) {
   const [activeSection, setActiveSection] = useState<DashboardSection>(initialSection);
+  const location = useLocation();
+  
+  // Update active section when URL changes
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const sectionParam = searchParams.get('section');
+    
+    if (sectionParam && ['followups', 'inventory', 'staff', 'billing'].includes(sectionParam)) {
+      setActiveSection(sectionParam as DashboardSection);
+    }
+  }, [location]);
 
   // Function to render the active section content
   const renderSectionContent = () => {
