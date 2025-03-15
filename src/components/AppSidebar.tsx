@@ -2,10 +2,11 @@
 import { 
   Calendar, 
   Users, 
-  CheckSquare, 
-  PhoneCall,
+  PackageOpen, 
+  DollarSign,
   Settings, 
-  Home 
+  Home,
+  CheckSquare
 } from "lucide-react";
 
 import {
@@ -29,24 +30,24 @@ const items = [
     icon: Home,
   },
   {
-    title: "Appointments",
-    url: "#",
-    icon: Calendar,
-  },
-  {
-    title: "Patients",
-    url: "#",
-    icon: Users,
-  },
-  {
     title: "Follow-ups",
     url: "#",
     icon: CheckSquare,
   },
   {
-    title: "Call List",
+    title: "Inventory",
     url: "#",
-    icon: PhoneCall,
+    icon: PackageOpen,
+  },
+  {
+    title: "Staff Management",
+    url: "#",
+    icon: Users,
+  },
+  {
+    title: "Billing & Accounting",
+    url: "#",
+    icon: DollarSign,
   },
   {
     title: "Settings",

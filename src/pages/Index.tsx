@@ -1,11 +1,11 @@
 
 import { Layout } from "@/components/Layout";
-import { Dashboard } from "@/components/Dashboard";
+import { OfficeManagerDashboard } from "@/components/OfficeManagerDashboard";
 
 const Index = () => {
   return (
     <Layout>
-      <Dashboard />
+      <OfficeManagerDashboard />
     </Layout>
   );
 };
