@@ -72,7 +72,7 @@ export function BillingTab() {
             <div className="p-4 text-center text-muted-foreground">
               Transaction data will appear here
             </div>
-          </CardContent>
+          </div>
         </CardContent>
       </Card>
     </div>

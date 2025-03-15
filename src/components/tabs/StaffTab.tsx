@@ -61,7 +61,7 @@ export function StaffTab() {
             <div className="p-4 text-center text-muted-foreground">
               Staff directory will appear here
             </div>
-          </CardContent>
+          </div>
         </CardContent>
       </Card>
     </div>
