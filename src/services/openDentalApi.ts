@@ -394,9 +394,27 @@ export const fetchDashboardStats = async () => {
     
     // Mock data for development
     return {
+      // Follow-ups stats
       todaysFollowUps: 12,
       pendingFollowUps: 4,
       completedFollowUps: 8,
+      
+      // Inventory stats
+      lowStockItems: 15,
+      restockedItems: 3,
+      todayInventoryUpdates: 5,
+      
+      // Staff stats
+      staffOnDuty: 7,
+      pendingTimeOff: 2,
+      shiftsCompleted: 5,
+      
+      // Billing stats
+      pendingPayments: 24,
+      clearedPayments: 12,
+      todayTransactions: 18,
+      
+      // Misc stats
       nextDayCancellations: 5,
       urgentTasks: 3
     };

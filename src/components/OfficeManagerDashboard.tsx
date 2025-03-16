@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { FollowUpsTab } from "@/components/tabs/FollowUpsTab";
 import { InventoryTab } from "@/components/tabs/InventoryTab";
 import { StaffTab } from "@/components/tabs/StaffTab";
 import { BillingTab } from "@/components/tabs/BillingTab";
-import { Dashboard } from "@/components/Dashboard";
+import { SummaryDashboard } from "@/components/SummaryDashboard";
 
 // Available sections that can be displayed
 export type DashboardSection = "followups" | "inventory" | "staff" | "billing";
@@ -32,8 +33,8 @@ export function OfficeManagerDashboard({ initialSection = null }: OfficeManagerD
   // Function to render the active section content
   const renderSectionContent = () => {
     if (activeSection === null) {
-      // If no section is specified, show the main dashboard
-      return <Dashboard />;
+      // If no section is specified, show the summary dashboard
+      return <SummaryDashboard />;
     }
     
     // Otherwise, show the appropriate section
@@ -47,7 +48,7 @@ export function OfficeManagerDashboard({ initialSection = null }: OfficeManagerD
       case "billing":
         return <BillingTab />;
       default:
-        return <Dashboard />;
+        return <SummaryDashboard />;
     }
   };
 
