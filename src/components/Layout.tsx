@@ -23,7 +23,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     // Otherwise, use the section-specific title
     switch (currentSection) {
       case "followups":
-        return "Follow Up";
+        return "Follow Ups";
       case "inventory":
         return "Inventory Management";
       case "staff":
