@@ -6,7 +6,8 @@ import {
   DollarSign,
   Settings, 
   Home,
-  CheckSquare
+  CheckSquare,
+  PlusCircle
 } from "lucide-react";
 
 import {
@@ -34,10 +35,16 @@ const items = [
     section: null, // Dashboard has no section parameter
   },
   {
-    title: "Follow-ups",
+    title: "Follow Up",
     url: "/?section=followups",
     icon: CheckSquare,
     section: "followups" as DashboardSection,
+  },
+  {
+    title: "Add Task",
+    url: "/add-task",
+    icon: PlusCircle,
+    section: null,
   },
   {
     title: "Inventory",
@@ -70,6 +77,7 @@ export function AppSidebar() {
   const searchParams = new URLSearchParams(location.search);
   const currentSection = searchParams.get('section');
   const isOnMainDashboard = location.pathname === "/" && !searchParams.has('section');
+  const isOnAddTask = location.pathname === "/add-task";
 
   const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, url: string, section?: DashboardSection | null) => {
     e.preventDefault();
@@ -77,6 +85,9 @@ export function AppSidebar() {
     if (url === "/" && section === null) {
       // Main dashboard - clear section parameter
       navigate('/');
+    } else if (url === "/add-task") {
+      // Navigate to Add Task page
+      navigate('/add-task');
     } else if (section) {
       // Update URL with section param
       navigate(`/?section=${section}`);
@@ -110,7 +121,8 @@ export function AppSidebar() {
                       href={item.url} 
                       className={`${
                         (item.title === "Dashboard" && isOnMainDashboard) || 
-                        (item.section && item.section === currentSection) 
+                        (item.section && item.section === currentSection) ||
+                        (item.title === "Add Task" && isOnAddTask)
                           ? "bg-dental-blue text-white" 
                           : ""
                       }`}
@@ -118,7 +130,8 @@ export function AppSidebar() {
                     >
                       <item.icon className={`${
                         (item.title === "Dashboard" && isOnMainDashboard) || 
-                        (item.section && item.section === currentSection) 
+                        (item.section && item.section === currentSection) ||
+                        (item.title === "Add Task" && isOnAddTask)
                           ? "text-white" 
                           : ""
                       }`} />

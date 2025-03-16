@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useLocation } from "react-router-dom";
 import {
@@ -22,7 +23,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     // Otherwise, use the section-specific title
     switch (currentSection) {
       case "followups":
-        return "Dental Follow-Up Center";
+        return "Follow Up";
       case "inventory":
         return "Inventory Management";
       case "staff":

@@ -1,7 +1,6 @@
 
 import React, { useState } from "react";
 import { TaskList } from "@/components/TaskList";
-import { TaskForm } from "@/components/TaskForm";
 import { Input } from "@/components/ui/input";
 import { 
   Select, 
@@ -25,12 +24,6 @@ export function FollowUpsTab() {
   const [filter, setFilter] = useState<"all" | "pending" | "completed" | "cancelled">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("all");
-
-  // This function will be called when a task is created or the form is cancelled
-  const handleTaskFormSave = () => {
-    // This could refresh data or reset form state if needed
-    console.log("Task form saved or cancelled");
-  };
 
   // Handle category change
   const handleCategoryChange = (category: string) => {
@@ -109,20 +102,12 @@ export function FollowUpsTab() {
         </Select>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-6">
-        <div className="w-full md:w-2/3">
-          <TaskList 
-            filter={filter} 
-            searchQuery={searchQuery} 
-            category={activeCategory !== "all" ? activeCategory : undefined}
-          />
-        </div>
-        <div className="w-full md:w-1/3">
-          <TaskForm 
-            onSave={handleTaskFormSave} 
-            defaultCategory={activeCategory !== "all" ? activeCategory : undefined}
-          />
-        </div>
+      <div>
+        <TaskList 
+          filter={filter} 
+          searchQuery={searchQuery} 
+          category={activeCategory !== "all" ? activeCategory : undefined}
+        />
       </div>
     </div>
   );
