@@ -38,6 +38,7 @@ const items = [
     url: "/?section=followups",
     icon: CheckSquare,
     section: "followups" as DashboardSection,
+    submenu: true
   },
   {
     title: "Inventory",
@@ -69,11 +70,15 @@ export function AppSidebar() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const currentSection = searchParams.get('section') || "followups";
+  const isOnMainDashboard = location.pathname === "/" && !searchParams.has('section');
 
-  const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, url: string, section?: DashboardSection) => {
+  const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, url: string, section?: DashboardSection, submenu?: boolean) => {
     e.preventDefault();
     
-    if (section) {
+    if (url === "/" && !submenu) {
+      // Main dashboard - clear section parameter
+      navigate('/');
+    } else if (section) {
       // Update URL with section param
       navigate(`/?section=${section}`);
     } else {
@@ -104,10 +109,14 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <a 
                       href={item.url} 
-                      className={`${item.section === currentSection ? "bg-dental-blue text-white" : ""}`}
-                      onClick={(e) => handleNavigation(e, item.url, item.section)}
+                      className={`${(item.title === "Dashboard" && isOnMainDashboard) || 
+                                    (item.section === currentSection && !isOnMainDashboard) ? 
+                                      "bg-dental-blue text-white" : ""}`}
+                      onClick={(e) => handleNavigation(e, item.url, item.section, item.submenu)}
                     >
-                      <item.icon className={`${item.section === currentSection ? "text-white" : ""}`} />
+                      <item.icon className={`${(item.title === "Dashboard" && isOnMainDashboard) || 
+                                             (item.section === currentSection && !isOnMainDashboard) ? 
+                                               "text-white" : ""}`} />
                       <span>{item.title}</span>
                     </a>
                   </SidebarMenuButton>

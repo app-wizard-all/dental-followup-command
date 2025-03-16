@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useLocation } from "react-router-dom";
 import {
@@ -10,10 +9,17 @@ import { AppSidebar } from "@/components/AppSidebar";
 export function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
+  const hasSection = searchParams.has('section');
   const currentSection = searchParams.get('section') || "followups";
   
   // Map section to title
   const getSectionTitle = () => {
+    // If we're on the main dashboard (no section parameter)
+    if (!hasSection && location.pathname === '/') {
+      return "DentalTrack Dashboard";
+    }
+    
+    // Otherwise, use the section-specific title
     switch (currentSection) {
       case "followups":
         return "Dental Follow-Up Center";
@@ -24,7 +30,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       case "billing":
         return "Billing & Accounting";
       default:
-        return "Dental Follow-Up Center";
+        return "DentalTrack Dashboard";
     }
   };
 

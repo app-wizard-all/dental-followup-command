@@ -5,6 +5,7 @@ import { FollowUpsTab } from "@/components/tabs/FollowUpsTab";
 import { InventoryTab } from "@/components/tabs/InventoryTab";
 import { StaffTab } from "@/components/tabs/StaffTab";
 import { BillingTab } from "@/components/tabs/BillingTab";
+import { Dashboard } from "@/components/Dashboard";
 
 // Available sections that can be displayed
 export type DashboardSection = "followups" | "inventory" | "staff" | "billing";
@@ -31,7 +32,7 @@ export function OfficeManagerDashboard({ initialSection = "followups" }: OfficeM
   const renderSectionContent = () => {
     switch (activeSection) {
       case "followups":
-        return <FollowUpsTab />;
+        return <Dashboard />;
       case "inventory":
         return <InventoryTab />;
       case "staff":
@@ -39,7 +40,7 @@ export function OfficeManagerDashboard({ initialSection = "followups" }: OfficeM
       case "billing":
         return <BillingTab />;
       default:
-        return <FollowUpsTab />;
+        return <Dashboard />;
     }
   };
 

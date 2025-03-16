@@ -6,11 +6,11 @@ import { OfficeManagerDashboard, DashboardSection } from "@/components/OfficeMan
 const Index = () => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const section = (searchParams.get('section') || 'followups') as DashboardSection;
+  const section = searchParams.get('section') as DashboardSection | null;
 
   return (
     <Layout>
-      <OfficeManagerDashboard initialSection={section} />
+      <OfficeManagerDashboard initialSection={section || "followups"} />
     </Layout>
   );
 };
