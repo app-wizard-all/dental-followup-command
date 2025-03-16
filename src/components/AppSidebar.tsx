@@ -35,16 +35,16 @@ const items = [
     section: null, // Dashboard has no section parameter
   },
   {
-    title: "Follow Up",
-    url: "/?section=followups",
-    icon: CheckSquare,
-    section: "followups" as DashboardSection,
-  },
-  {
     title: "Add Task",
     url: "/add-task",
     icon: PlusCircle,
     section: null,
+  },
+  {
+    title: "Follow Ups",
+    url: "/?section=followups",
+    icon: CheckSquare,
+    section: "followups" as DashboardSection,
   },
   {
     title: "Inventory",
