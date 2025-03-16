@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { FollowUpsTab } from "@/components/tabs/FollowUpsTab";
@@ -11,11 +10,11 @@ import { Dashboard } from "@/components/Dashboard";
 export type DashboardSection = "followups" | "inventory" | "staff" | "billing";
 
 interface OfficeManagerDashboardProps {
-  initialSection?: DashboardSection;
+  initialSection?: DashboardSection | null;
 }
 
-export function OfficeManagerDashboard({ initialSection = "followups" }: OfficeManagerDashboardProps) {
-  const [activeSection, setActiveSection] = useState<DashboardSection>(initialSection);
+export function OfficeManagerDashboard({ initialSection = null }: OfficeManagerDashboardProps) {
+  const [activeSection, setActiveSection] = useState<DashboardSection | null>(initialSection);
   const location = useLocation();
   
   // Update active section when URL changes
@@ -25,14 +24,22 @@ export function OfficeManagerDashboard({ initialSection = "followups" }: OfficeM
     
     if (sectionParam && ['followups', 'inventory', 'staff', 'billing'].includes(sectionParam)) {
       setActiveSection(sectionParam as DashboardSection);
+    } else {
+      setActiveSection(null); // No section parameter means we're on the main dashboard
     }
   }, [location]);
 
   // Function to render the active section content
   const renderSectionContent = () => {
+    if (activeSection === null) {
+      // If no section is specified, show the main dashboard
+      return <Dashboard />;
+    }
+    
+    // Otherwise, show the appropriate section
     switch (activeSection) {
       case "followups":
-        return <Dashboard />;
+        return <FollowUpsTab />;
       case "inventory":
         return <InventoryTab />;
       case "staff":

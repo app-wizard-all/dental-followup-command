@@ -10,7 +10,7 @@ const Index = () => {
 
   return (
     <Layout>
-      <OfficeManagerDashboard initialSection={section || "followups"} />
+      <OfficeManagerDashboard initialSection={section} />
     </Layout>
   );
 };

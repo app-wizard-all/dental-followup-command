@@ -31,14 +31,13 @@ const items = [
     title: "Dashboard",
     url: "/",
     icon: Home,
-    section: "followups" as DashboardSection,
+    section: null, // Dashboard has no section parameter
   },
   {
     title: "Follow-ups",
     url: "/?section=followups",
     icon: CheckSquare,
     section: "followups" as DashboardSection,
-    submenu: true
   },
   {
     title: "Inventory",
@@ -69,13 +68,13 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const currentSection = searchParams.get('section') || "followups";
+  const currentSection = searchParams.get('section');
   const isOnMainDashboard = location.pathname === "/" && !searchParams.has('section');
 
-  const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, url: string, section?: DashboardSection, submenu?: boolean) => {
+  const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, url: string, section?: DashboardSection | null) => {
     e.preventDefault();
     
-    if (url === "/" && !submenu) {
+    if (url === "/" && section === null) {
       // Main dashboard - clear section parameter
       navigate('/');
     } else if (section) {
@@ -109,14 +108,20 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <a 
                       href={item.url} 
-                      className={`${(item.title === "Dashboard" && isOnMainDashboard) || 
-                                    (item.section === currentSection && !isOnMainDashboard) ? 
-                                      "bg-dental-blue text-white" : ""}`}
-                      onClick={(e) => handleNavigation(e, item.url, item.section, item.submenu)}
+                      className={`${
+                        (item.title === "Dashboard" && isOnMainDashboard) || 
+                        (item.section && item.section === currentSection) 
+                          ? "bg-dental-blue text-white" 
+                          : ""
+                      }`}
+                      onClick={(e) => handleNavigation(e, item.url, item.section)}
                     >
-                      <item.icon className={`${(item.title === "Dashboard" && isOnMainDashboard) || 
-                                             (item.section === currentSection && !isOnMainDashboard) ? 
-                                               "text-white" : ""}`} />
+                      <item.icon className={`${
+                        (item.title === "Dashboard" && isOnMainDashboard) || 
+                        (item.section && item.section === currentSection) 
+                          ? "text-white" 
+                          : ""
+                      }`} />
                       <span>{item.title}</span>
                     </a>
                   </SidebarMenuButton>

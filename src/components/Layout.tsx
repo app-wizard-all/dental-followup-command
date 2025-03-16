@@ -10,7 +10,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const hasSection = searchParams.has('section');
-  const currentSection = searchParams.get('section') || "followups";
+  const currentSection = searchParams.get('section');
   
   // Map section to title
   const getSectionTitle = () => {
