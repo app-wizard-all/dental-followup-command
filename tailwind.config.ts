@@ -64,11 +64,14 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				dental: {
-					blue: '#33C3F0',
+					blue: '#33C3F0',  // Kept for legacy, but use teal for new components
 					teal: '#0EA5E9',
 					mint: '#D3E4FD',
 					lightBlue: '#E5DEFF',
-					gray: '#8E9196'
+					gray: '#8E9196',
+					charcoal: '#403E43',
+					silver: '#9F9EA1',
+					softBlue: '#D3E4FD'
 				}
 			},
 			borderRadius: {

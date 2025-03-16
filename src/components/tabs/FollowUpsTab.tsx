@@ -9,7 +9,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { Search, XCircle, FileCheck, Phone } from "lucide-react";
+import { Search, XCircle, FileCheck, Phone, CheckCircle, Clock, AlertTriangle } from "lucide-react";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -19,6 +19,8 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatCard } from "@/components/StatCard";
 
 export function FollowUpsTab() {
   const [filter, setFilter] = useState<"all" | "pending" | "completed" | "cancelled">("all");
@@ -35,48 +37,80 @@ export function FollowUpsTab() {
 
   return (
     <div className="grid gap-6">
-      <NavigationMenu className="mb-2">
-        <NavigationMenuList>
-          <NavigationMenuItem>
-            <NavigationMenuLink
-              className={navigationMenuTriggerStyle() + (activeCategory === "all" ? " bg-accent" : "")}
-              onClick={() => handleCategoryChange("all")}
-            >
-              All Follow-ups
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-          
-          <NavigationMenuItem>
-            <NavigationMenuLink
-              className={navigationMenuTriggerStyle() + (activeCategory === "cancellation" ? " bg-accent" : "")}
-              onClick={() => handleCategoryChange("cancellation")}
-            >
-              <XCircle className="h-4 w-4 mr-2" />
-              Fill Cancellation
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-          
-          <NavigationMenuItem>
-            <NavigationMenuLink
-              className={navigationMenuTriggerStyle() + (activeCategory === "post" ? " bg-accent" : "")}
-              onClick={() => handleCategoryChange("post")}
-            >
-              <FileCheck className="h-4 w-4 mr-2" />
-              Post Follow-up
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-          
-          <NavigationMenuItem>
-            <NavigationMenuLink
-              className={navigationMenuTriggerStyle() + (activeCategory === "pharmacy" ? " bg-accent" : "")}
-              onClick={() => handleCategoryChange("pharmacy")}
-            >
-              <Phone className="h-4 w-4 mr-2" />
-              Pharmacy Calls
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-        </NavigationMenuList>
-      </NavigationMenu>
+      {/* Dashboard Section for Follow-ups */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <StatCard 
+          title="Pending Follow-ups" 
+          value={12} 
+          icon={<CheckCircle className="h-5 w-5 text-dental-teal" />}
+          description="Needs attention"
+          bgColor="bg-dental-mint/30"
+        />
+        <StatCard 
+          title="Urgent Cases" 
+          value={3} 
+          icon={<AlertTriangle className="h-5 w-5 text-amber-500" />}
+          description="High priority"
+          bgColor="bg-amber-50"
+        />
+        <StatCard 
+          title="Today's Tasks" 
+          value={8} 
+          icon={<Clock className="h-5 w-5 text-dental-blue/70" />}
+          description="Due today"
+          bgColor="bg-dental-lightBlue/40"
+        />
+      </div>
+      
+      <Card className="mb-6">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg text-dental-gray">Follow-up Categories</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <NavigationMenu className="mb-2">
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  className={navigationMenuTriggerStyle() + (activeCategory === "all" ? " bg-dental-mint/50 text-dental-teal border-dental-teal/30" : "")}
+                  onClick={() => handleCategoryChange("all")}
+                >
+                  All Follow-ups
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  className={navigationMenuTriggerStyle() + (activeCategory === "cancellation" ? " bg-dental-mint/50 text-dental-teal border-dental-teal/30" : "")}
+                  onClick={() => handleCategoryChange("cancellation")}
+                >
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Fill Cancellation
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  className={navigationMenuTriggerStyle() + (activeCategory === "post" ? " bg-dental-mint/50 text-dental-teal border-dental-teal/30" : "")}
+                  onClick={() => handleCategoryChange("post")}
+                >
+                  <FileCheck className="h-4 w-4 mr-2" />
+                  Post Follow-up
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  className={navigationMenuTriggerStyle() + (activeCategory === "pharmacy" ? " bg-dental-mint/50 text-dental-teal border-dental-teal/30" : "")}
+                  onClick={() => handleCategoryChange("pharmacy")}
+                >
+                  <Phone className="h-4 w-4 mr-2" />
+                  Pharmacy Calls
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+        </CardContent>
+      </Card>
       
       <div className="flex items-center gap-4">
         <div className="relative flex-1">

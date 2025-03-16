@@ -100,13 +100,13 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center justify-center py-4">
-          <svg className="w-8 h-8 text-dental-blue" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg className="w-8 h-8 text-dental-teal" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
               d="M12 2C7.59 2 4 5.59 4 10c0 2.29.94 4.38 2.47 5.89L12 21.42l5.53-5.53C19.06 14.38 20 12.29 20 10c0-4.41-3.59-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"
               fill="currentColor"
             />
           </svg>
-          <span className="ml-2 text-lg font-bold">DentalTrack</span>
+          <span className="ml-2 text-lg font-bold text-dental-gray">DentalTrack</span>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -123,7 +123,7 @@ export function AppSidebar() {
                         (item.title === "Dashboard" && isOnMainDashboard) || 
                         (item.section && item.section === currentSection) ||
                         (item.title === "Add Task" && isOnAddTask)
-                          ? "bg-dental-blue text-white" 
+                          ? "bg-dental-mint/50 text-dental-teal" 
                           : ""
                       }`}
                       onClick={(e) => handleNavigation(e, item.url, item.section)}
@@ -132,8 +132,8 @@ export function AppSidebar() {
                         (item.title === "Dashboard" && isOnMainDashboard) || 
                         (item.section && item.section === currentSection) ||
                         (item.title === "Add Task" && isOnAddTask)
-                          ? "text-white" 
-                          : ""
+                          ? "text-dental-teal" 
+                          : "text-dental-gray"
                       }`} />
                       <span>{item.title}</span>
                     </a>
