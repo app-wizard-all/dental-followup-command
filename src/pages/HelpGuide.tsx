@@ -84,6 +84,18 @@ const PdfUploadSection = () => {
     }, 1500);
   };
 
+  const handlePrint = () => {
+    if (!preview) return;
+    
+    // Open PDF in new window for printing
+    const printWindow = window.open(preview, '_blank');
+    if (printWindow) {
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2">
@@ -153,6 +165,31 @@ const PdfUploadSection = () => {
               <p className="text-gray-400">PDF preview will appear here</p>
             )}
           </div>
+          {preview && (
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={handlePrint}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4 mr-2"
+              >
+                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                <rect width="12" height="8" x="6" y="14"></rect>
+              </svg>
+              Print PDF
+            </Button>
+          )}
         </div>
       </div>
     </div>

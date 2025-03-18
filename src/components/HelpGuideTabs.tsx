@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -14,7 +15,8 @@ import {
   Calendar, 
   Clock,
   FileText,
-  Eye
+  Eye,
+  Printer
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
@@ -312,6 +314,18 @@ export function HelpGuideTabs() {
       )
     : [];
 
+  const handlePrintPdf = () => {
+    if (!activePdfUrl) return;
+    
+    // Open PDF in new window for printing
+    const printWindow = window.open(activePdfUrl, '_blank');
+    if (printWindow) {
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+    }
+  };
+
   return (
     <div>
       <div className="relative mb-6">
@@ -458,13 +472,29 @@ export function HelpGuideTabs() {
                             </ol>
                           )}
                           {item.pdfUrl && (
-                            <div className="mt-4">
+                            <div className="mt-4 flex space-x-2">
                               <Button 
                                 variant="outline" 
                                 onClick={() => setActivePdfUrl(item.pdfUrl)}
                               >
                                 <FileText className="h-4 w-4 mr-2" />
                                 View Full PDF Resource
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  if (item.pdfUrl) {
+                                    const printWindow = window.open(item.pdfUrl, '_blank');
+                                    if (printWindow) {
+                                      printWindow.onload = () => {
+                                        printWindow.print();
+                                      };
+                                    }
+                                  }
+                                }}
+                              >
+                                <Printer className="h-4 w-4 mr-2" />
+                                Print PDF
                               </Button>
                             </div>
                           )}
@@ -483,7 +513,17 @@ export function HelpGuideTabs() {
         <Dialog open={!!activePdfUrl} onOpenChange={(open) => !open && setActivePdfUrl(null)}>
           <DialogContent className="max-w-5xl h-[85vh]">
             <DialogHeader>
-              <DialogTitle>PDF Resource</DialogTitle>
+              <DialogTitle className="flex items-center justify-between">
+                <span>PDF Resource</span>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handlePrintPdf}
+                >
+                  <Printer className="h-4 w-4 mr-2" />
+                  Print PDF
+                </Button>
+              </DialogTitle>
             </DialogHeader>
             <div className="h-full mt-4">
               <iframe
