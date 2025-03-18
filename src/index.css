@@ -9,7 +9,7 @@
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 240 10% 3.9%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
@@ -92,5 +92,32 @@
 
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold text-dental-charcoal;
+    letter-spacing: -0.015em;
+  }
+  
+  p, li {
+    @apply text-dental-charcoal;
+    font-weight: 450;
   }
 }
+
+@layer components {
+  .card-title {
+    @apply text-xl font-semibold text-dental-charcoal tracking-tight;
+  }
+  
+  .text-primary-content {
+    @apply text-dental-charcoal font-medium;
+  }
+  
+  .step-content {
+    @apply text-dental-charcoal font-normal;
+  }
+}
+

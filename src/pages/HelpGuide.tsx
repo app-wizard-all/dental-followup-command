@@ -3,26 +3,30 @@ import { Layout } from "@/components/Layout";
 import { HelpGuideTabs } from "@/components/HelpGuideTabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileUp } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { FileUp, Printer } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const HelpGuide = () => {
   const [activeTab, setActiveTab] = useState<"guides" | "pdf-upload">("guides");
 
   return (
     <Layout>
-      <Card className="mb-6">
-        <CardHeader>
+      <Card className="mb-6 shadow-md">
+        <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-2xl font-bold text-dental-gray">DentalTrack Help Center</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-2xl font-bold text-dental-charcoal">DentalTrack Help Center</CardTitle>
+              <CardDescription className="text-dental-gray font-medium">
                 Find guides and upload reference materials for front desk procedures
               </CardDescription>
             </div>
             <Button 
               variant="outline" 
+              className="border-dental-teal text-dental-teal hover:bg-dental-teal/10"
               onClick={() => setActiveTab(activeTab === "guides" ? "pdf-upload" : "guides")}
             >
               {activeTab === "guides" ? (
@@ -80,7 +84,7 @@ const PdfUploadSection = () => {
       setSelectedFile(null);
       setPreview(null);
       // Show success message
-      alert("PDF uploaded successfully to " + selectedCategory + " category!");
+      toast.success(`PDF uploaded successfully to ${selectedCategory} category!`);
     }, 1500);
   };
 
@@ -100,12 +104,12 @@ const PdfUploadSection = () => {
     <div className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2">
         <div>
-          <h3 className="text-lg font-medium mb-4">Upload New Resource</h3>
+          <h3 className="text-lg font-semibold mb-4 text-dental-charcoal">Upload New Resource</h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Select Category</label>
+              <Label className="text-dental-charcoal font-medium">Select Category</Label>
               <select 
-                className="w-full p-2 border rounded-md" 
+                className="w-full p-2 border rounded-md mt-1 text-dental-charcoal" 
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
               >
@@ -120,8 +124,8 @@ const PdfUploadSection = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium mb-1">Upload PDF</label>
-              <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
+              <Label className="text-dental-charcoal font-medium">Upload PDF</Label>
+              <div className="border-2 border-dashed border-dental-teal/50 rounded-md p-6 text-center mt-1 hover:bg-dental-teal/5 transition-colors">
                 <input
                   type="file"
                   accept=".pdf"
@@ -130,12 +134,12 @@ const PdfUploadSection = () => {
                   onChange={handleFileChange}
                 />
                 <label htmlFor="pdf-upload" className="cursor-pointer">
-                  <FileUp className="mx-auto h-12 w-12 text-gray-400" />
-                  <p className="mt-2 text-sm text-gray-500">Click to upload or drag and drop</p>
-                  <p className="text-xs text-gray-400">PDF files only (max 10MB)</p>
+                  <FileUp className="mx-auto h-12 w-12 text-dental-teal" />
+                  <p className="mt-2 text-sm text-dental-charcoal font-medium">Click to upload or drag and drop</p>
+                  <p className="text-xs text-dental-gray">PDF files only (max 10MB)</p>
                 </label>
                 {selectedFile && (
-                  <div className="mt-2 text-sm text-dental-teal">
+                  <div className="mt-2 text-sm text-dental-teal font-medium">
                     Selected: {selectedFile.name}
                   </div>
                 )}
@@ -143,7 +147,7 @@ const PdfUploadSection = () => {
             </div>
             
             <Button
-              className="w-full"
+              className="w-full bg-dental-teal hover:bg-dental-teal/90"
               disabled={!selectedFile || uploading}
               onClick={handleUpload}
             >
@@ -153,8 +157,8 @@ const PdfUploadSection = () => {
         </div>
         
         <div>
-          <h3 className="text-lg font-medium mb-4">Preview</h3>
-          <div className="border rounded-md h-[400px] flex items-center justify-center bg-gray-50">
+          <h3 className="text-lg font-semibold mb-4 text-dental-charcoal">Preview</h3>
+          <div className="border rounded-md h-[400px] flex items-center justify-center bg-gray-50 overflow-hidden">
             {preview ? (
               <iframe 
                 src={preview} 
@@ -162,31 +166,16 @@ const PdfUploadSection = () => {
                 title="PDF Preview"
               />
             ) : (
-              <p className="text-gray-400">PDF preview will appear here</p>
+              <p className="text-dental-gray font-medium">PDF preview will appear here</p>
             )}
           </div>
           {preview && (
             <Button
               variant="outline"
-              className="mt-4"
+              className="mt-4 border-dental-teal text-dental-teal hover:bg-dental-teal/10"
               onClick={handlePrint}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-4 w-4 mr-2"
-              >
-                <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                <rect width="12" height="8" x="6" y="14"></rect>
-              </svg>
+              <Printer className="h-4 w-4 mr-2" />
               Print PDF
             </Button>
           )}
