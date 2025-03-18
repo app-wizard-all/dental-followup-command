@@ -7,7 +7,8 @@ import {
   Settings, 
   Home,
   CheckSquare,
-  PlusCircle
+  PlusCircle,
+  HelpCircle
 } from "lucide-react";
 
 import {
@@ -65,6 +66,12 @@ const items = [
     section: "billing" as DashboardSection,
   },
   {
+    title: "Help Guide",
+    url: "/help-guide",
+    icon: HelpCircle,
+    section: null,
+  },
+  {
     title: "Settings",
     url: "#",
     icon: Settings,
@@ -78,6 +85,7 @@ export function AppSidebar() {
   const currentSection = searchParams.get('section');
   const isOnMainDashboard = location.pathname === "/" && !searchParams.has('section');
   const isOnAddTask = location.pathname === "/add-task";
+  const isOnHelpGuide = location.pathname === "/help-guide";
 
   const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, url: string, section?: DashboardSection | null) => {
     e.preventDefault();
@@ -88,6 +96,9 @@ export function AppSidebar() {
     } else if (url === "/add-task") {
       // Navigate to Add Task page
       navigate('/add-task');
+    } else if (url === "/help-guide") {
+      // Navigate to Help Guide page
+      navigate('/help-guide');
     } else if (section) {
       // Update URL with section param
       navigate(`/?section=${section}`);
@@ -122,7 +133,8 @@ export function AppSidebar() {
                       className={`${
                         (item.title === "Dashboard" && isOnMainDashboard) || 
                         (item.section && item.section === currentSection) ||
-                        (item.title === "Add Task" && isOnAddTask)
+                        (item.title === "Add Task" && isOnAddTask) ||
+                        (item.title === "Help Guide" && isOnHelpGuide)
                           ? "bg-dental-mint/50 text-dental-teal" 
                           : ""
                       }`}
@@ -131,7 +143,8 @@ export function AppSidebar() {
                       <item.icon className={`${
                         (item.title === "Dashboard" && isOnMainDashboard) || 
                         (item.section && item.section === currentSection) ||
-                        (item.title === "Add Task" && isOnAddTask)
+                        (item.title === "Add Task" && isOnAddTask) ||
+                        (item.title === "Help Guide" && isOnHelpGuide)
                           ? "text-dental-teal" 
                           : "text-dental-gray"
                       }`} />

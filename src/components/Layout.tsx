@@ -15,6 +15,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
   
   // Map section to title
   const getSectionTitle = () => {
+    // If we're on the help guide page
+    if (location.pathname === '/help-guide') {
+      return "Help Guide";
+    }
+    
     // If we're on the main dashboard (no section parameter)
     if (!hasSection && location.pathname === '/') {
       return "DentalTrack Dashboard";
