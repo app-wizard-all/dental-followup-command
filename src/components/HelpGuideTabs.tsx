@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -13,15 +12,18 @@ import {
   BadgeCheck, 
   CreditCard, 
   Calendar, 
-  Clock
+  Clock,
+  FileText,
+  Eye
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-// Define the help guide content structure
 interface GuideItem {
   id: string;
   title: string;
   content: string;
   steps?: string[];
+  pdfUrl?: string;
 }
 
 interface GuideCategory {
@@ -31,7 +33,6 @@ interface GuideCategory {
   items: GuideItem[];
 }
 
-// Define the help guide data
 const guideData: GuideCategory[] = [
   {
     id: "phone-calls",
@@ -49,7 +50,8 @@ const guideData: GuideCategory[] = [
           "Take detailed notes in the patient's file",
           "Verify caller's identity by asking for date of birth and address",
           "Handle the request or transfer to appropriate staff"
-        ]
+        ],
+        pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
       },
       {
         id: "appointment-calls",
@@ -296,8 +298,8 @@ const guideData: GuideCategory[] = [
 export function HelpGuideTabs() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("phone-calls");
+  const [activePdfUrl, setActivePdfUrl] = useState<string | null>(null);
   
-  // Filter guides based on search query
   const filteredGuides = searchQuery 
     ? guideData.flatMap(category => 
         category.items.filter(item => 
@@ -311,132 +313,188 @@ export function HelpGuideTabs() {
     : [];
 
   return (
-    <div className="space-y-6">
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-dental-gray">DentalTrack Help Guide</CardTitle>
-          <CardDescription>
-            Find step-by-step guides for common front desk procedures and patient interactions
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="relative mb-6">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search for guides, procedures, or keywords..."
-              className="pl-8"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+    <div>
+      <div className="relative mb-6">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          type="search"
+          placeholder="Search for guides, procedures, or keywords..."
+          className="pl-8"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
 
-          {searchQuery && (
-            <div className="mb-6">
-              <h3 className="mb-4 text-lg font-medium">Search Results ({filteredGuides.length})</h3>
-              {filteredGuides.length > 0 ? (
-                <div className="space-y-4">
-                  {filteredGuides.map(guide => (
-                    <Card key={guide.id} className="overflow-hidden">
-                      <CardHeader className="bg-dental-mint/10 p-4">
-                        <CardTitle className="text-md">{guide.title}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-4">
-                        <p className="mb-2 text-sm text-muted-foreground">{guide.content}</p>
-                        {guide.steps && (
-                          <ol className="list-decimal pl-5 space-y-1 text-sm">
-                            {guide.steps.map((step, index) => (
-                              <li key={index}>{step}</li>
-                            ))}
-                          </ol>
-                        )}
-                        <div className="mt-4">
-                          <Button 
-                            variant="link" 
-                            size="sm" 
-                            className="p-0 text-dental-teal"
-                            onClick={() => {
-                              setSearchQuery("");
-                              setActiveCategory(guide.categoryId as string);
-                            }}
-                          >
-                            View full category
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center p-6 bg-gray-50 rounded-md">
-                  <p className="text-muted-foreground">No guides found for "{searchQuery}"</p>
-                  <Button 
-                    variant="link" 
-                    onClick={() => setSearchQuery("")}
-                    className="text-dental-teal mt-2"
-                  >
-                    Clear search
-                  </Button>
-                </div>
-              )}
+      {searchQuery && (
+        <div className="mb-6">
+          <h3 className="mb-4 text-lg font-medium">Search Results ({filteredGuides.length})</h3>
+          {filteredGuides.length > 0 ? (
+            <div className="space-y-4">
+              {filteredGuides.map(guide => (
+                <Card key={guide.id} className="overflow-hidden">
+                  <CardHeader className="bg-dental-mint/10 p-4">
+                    <CardTitle className="text-md">{guide.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <p className="mb-2 text-sm text-muted-foreground">{guide.content}</p>
+                    {guide.steps && (
+                      <ol className="list-decimal pl-5 space-y-1 text-sm">
+                        {guide.steps.map((step, index) => (
+                          <li key={index}>{step}</li>
+                        ))}
+                      </ol>
+                    )}
+                    {guide.pdfUrl && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-4"
+                        onClick={() => setActivePdfUrl(guide.pdfUrl)}
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        View PDF Resource
+                      </Button>
+                    )}
+                    <div className="mt-4">
+                      <Button 
+                        variant="link" 
+                        size="sm" 
+                        className="p-0 text-dental-teal"
+                        onClick={() => {
+                          setSearchQuery("");
+                          setActiveCategory(guide.categoryId as string);
+                        }}
+                      >
+                        View full category
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center p-6 bg-gray-50 rounded-md">
+              <p className="text-muted-foreground">No guides found for "{searchQuery}"</p>
+              <Button 
+                variant="link" 
+                onClick={() => setSearchQuery("")}
+                className="text-dental-teal mt-2"
+              >
+                Clear search
+              </Button>
             </div>
           )}
+        </div>
+      )}
 
-          {!searchQuery && (
-            <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full">
-              <TabsList className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 mb-6">
-                {guideData.map(category => (
-                  <TabsTrigger 
-                    key={category.id} 
-                    value={category.id}
-                    className="flex items-center"
-                  >
-                    <category.icon className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">{category.title}</span>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              
-              {guideData.map(category => (
-                <TabsContent key={category.id} value={category.id} className="mt-4">
-                  <Card>
-                    <CardHeader className="bg-dental-mint/10">
-                      <div className="flex items-center">
-                        <category.icon className="h-5 w-5 mr-2 text-dental-teal" />
-                        <CardTitle>{category.title} Guide</CardTitle>
-                      </div>
-                      <CardDescription>
-                        Step-by-step instructions for {category.title.toLowerCase()} procedures
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-6">
-                      <Accordion type="single" collapsible className="w-full">
-                        {category.items.map(item => (
-                          <AccordionItem key={item.id} value={item.id}>
-                            <AccordionTrigger className="text-dental-gray hover:text-dental-teal">
-                              {item.title}
-                            </AccordionTrigger>
-                            <AccordionContent>
-                              <p className="mb-4 text-muted-foreground">{item.content}</p>
-                              {item.steps && (
-                                <ol className="list-decimal pl-5 space-y-2">
-                                  {item.steps.map((step, index) => (
-                                    <li key={index}>{step}</li>
-                                  ))}
-                                </ol>
-                              )}
-                            </AccordionContent>
-                          </AccordionItem>
-                        ))}
-                      </Accordion>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              ))}
-            </Tabs>
-          )}
-        </CardContent>
-      </Card>
+      {!searchQuery && (
+        <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full">
+          <TabsList className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 mb-6">
+            {guideData.map(category => (
+              <TabsTrigger 
+                key={category.id} 
+                value={category.id}
+                className="flex items-center"
+              >
+                <category.icon className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">{category.title}</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          
+          {guideData.map(category => (
+            <TabsContent key={category.id} value={category.id} className="mt-4">
+              <Card>
+                <CardHeader className="bg-dental-mint/10">
+                  <div className="flex items-center">
+                    <category.icon className="h-5 w-5 mr-2 text-dental-teal" />
+                    <CardTitle>{category.title} Guide</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Step-by-step instructions for {category.title.toLowerCase()} procedures
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <Accordion type="single" collapsible className="w-full">
+                    {category.items.map(item => (
+                      <AccordionItem key={item.id} value={item.id}>
+                        <AccordionTrigger className="text-dental-gray hover:text-dental-teal">
+                          <div className="flex items-center">
+                            {item.title}
+                            {item.pdfUrl && (
+                              <Dialog>
+                                <DialogTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="ml-2 h-6 w-6 p-0"
+                                  >
+                                    <Eye className="h-4 w-4 text-dental-teal" />
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-4xl h-[80vh]">
+                                  <DialogHeader>
+                                    <DialogTitle>{item.title} PDF Resource</DialogTitle>
+                                  </DialogHeader>
+                                  <div className="h-full mt-4">
+                                    <iframe
+                                      src={item.pdfUrl}
+                                      className="w-full h-full rounded-md"
+                                      title={`${item.title} PDF`}
+                                    />
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            )}
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <p className="mb-4 text-muted-foreground">{item.content}</p>
+                          {item.steps && (
+                            <ol className="list-decimal pl-5 space-y-2">
+                              {item.steps.map((step, index) => (
+                                <li key={index}>{step}</li>
+                              ))}
+                            </ol>
+                          )}
+                          {item.pdfUrl && (
+                            <div className="mt-4">
+                              <Button 
+                                variant="outline" 
+                                onClick={() => setActivePdfUrl(item.pdfUrl)}
+                              >
+                                <FileText className="h-4 w-4 mr-2" />
+                                View Full PDF Resource
+                              </Button>
+                            </div>
+                          )}
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          ))}
+        </Tabs>
+      )}
+
+      {activePdfUrl && (
+        <Dialog open={!!activePdfUrl} onOpenChange={(open) => !open && setActivePdfUrl(null)}>
+          <DialogContent className="max-w-5xl h-[85vh]">
+            <DialogHeader>
+              <DialogTitle>PDF Resource</DialogTitle>
+            </DialogHeader>
+            <div className="h-full mt-4">
+              <iframe
+                src={activePdfUrl}
+                className="w-full h-full rounded-md"
+                title="PDF Resource"
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
