@@ -1,6 +1,6 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { initiateCall } from "./mangoVoiceApi";
 
 // Types for Open Dental API responses
 export interface OpenDentalPatient {
@@ -283,18 +283,50 @@ export const fetchFollowUpCounts = async () => {
 // Contact patient (phone or email)
 export const contactPatient = async (patientId: string, method: 'phone' | 'email'): Promise<boolean> => {
   try {
-    // In a real implementation, this would initiate a call or send an email
-    // For now, we'll just log it and simulate a successful contact
-    console.log(`Contacting patient ${patientId} via ${method}`);
+    if (method === 'phone') {
+      // Get patient's phone number from the database
+      const { data: patient, error: patientError } = await supabase
+        .from('patients')
+        .select('phone_number')
+        .eq('id', patientId)
+        .single();
+        
+      if (patientError || !patient?.phone_number) {
+        console.error(`Failed to find phone number for patient ${patientId}:`, patientError);
+        throw new Error("Patient phone number not found");
+      }
+      
+      // Call using MangoVoice API
+      const callResult = await initiateCall(patient.phone_number);
+      
+      if (!callResult.success) {
+        throw new Error(callResult.error || "Failed to initiate call");
+      }
+      
+      // Log the successful call attempt
+      await supabase.from('patient_contacts').insert({
+        patient_id: patientId,
+        contact_method: method,
+        timestamp: new Date().toISOString(),
+        call_id: callResult.callId
+      });
+      
+      return true;
+    } else if (method === 'email') {
+      // Keep existing email logic
+      console.log(`Emailing patient ${patientId}`);
+      
+      // Log the email contact attempt
+      await supabase.from('patient_contacts').insert({
+        patient_id: patientId,
+        contact_method: method,
+        timestamp: new Date().toISOString()
+      });
+      
+      return true;
+    }
     
-    // You could log the contact attempt to a separate table if needed
-    // await supabase.from('patient_contacts').insert({
-    //   patient_id: patientId,
-    //   contact_method: method,
-    //   timestamp: new Date()
-    // });
-    
-    return true;
+    return false;
   } catch (error) {
     console.error(`Failed to contact patient ${patientId} via ${method}:`, error);
     throw error;

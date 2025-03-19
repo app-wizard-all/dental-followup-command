@@ -1,7 +1,7 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, CheckCircle, MoreHorizontal, Loader2 } from "lucide-react";
+import { Phone, Mail, CheckCircle, MoreHorizontal, Loader2, PhoneOff } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +19,7 @@ export function TaskActions({ task }: TaskActionsProps) {
   const { toast } = useToast();
   const updateTaskMutation = useUpdateFollowUpTask();
   const contactPatientMutation = useContactPatient();
+  const [callStatus, setCallStatus] = useState<'idle' | 'calling' | 'connected' | 'failed'>('idle');
 
   const updateTaskStatus = (taskId: string, newStatus: string) => {
     updateTaskMutation.mutate(
@@ -46,21 +47,44 @@ export function TaskActions({ task }: TaskActionsProps) {
   };
 
   const handleContactPatient = (method: 'phone' | 'email') => {
+    if (method === 'phone') {
+      setCallStatus('calling');
+    }
+    
     contactPatientMutation.mutate(
       { patientId: task.patientId, method },
       {
         onSuccess: () => {
-          toast({
-            title: method === 'phone' ? "Calling patient" : "Email sent",
-            description: method === 'phone' 
-              ? `Initiating call to ${task.patientName}` 
-              : `Email sent to ${task.patientName}`,
-          });
+          if (method === 'phone') {
+            setCallStatus('connected');
+            toast({
+              title: "Call initiated",
+              description: `Your desk phone is now connecting to ${task.patientName}`,
+            });
+            
+            // Reset call status after a delay to simulate call completion
+            setTimeout(() => {
+              setCallStatus('idle');
+            }, 5000);
+          } else {
+            toast({
+              title: "Email sent",
+              description: `Email sent to ${task.patientName}`,
+            });
+          }
         },
         onError: (error) => {
+          if (method === 'phone') {
+            setCallStatus('failed');
+            // Reset status after showing the error
+            setTimeout(() => {
+              setCallStatus('idle');
+            }, 3000);
+          }
+          
           toast({
             title: "Contact failed",
-            description: `Failed to ${method === 'phone' ? 'call' : 'email'} patient. Please try again.`,
+            description: `Failed to ${method === 'phone' ? 'call' : 'email'} patient. ${error instanceof Error ? error.message : 'Please try again.'}`,
             variant: "destructive",
           });
           console.error("Contact error:", error);
@@ -72,19 +96,26 @@ export function TaskActions({ task }: TaskActionsProps) {
   return (
     <div className="flex gap-2 mt-4">
       <Button 
-        variant="outline" 
+        variant={callStatus === 'connected' ? "default" : callStatus === 'failed' ? "destructive" : "outline"} 
         size="sm" 
         className="h-8"
         onClick={() => handleContactPatient('phone')}
-        disabled={contactPatientMutation.isPending || updateTaskMutation.isPending}
+        disabled={contactPatientMutation.isPending || updateTaskMutation.isPending || callStatus !== 'idle'}
       >
-        {contactPatientMutation.isPending ? (
+        {callStatus === 'calling' || contactPatientMutation.isPending ? (
           <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+        ) : callStatus === 'connected' ? (
+          <Phone className="h-3 w-3 mr-2" />
+        ) : callStatus === 'failed' ? (
+          <PhoneOff className="h-3 w-3 mr-2" />
         ) : (
           <Phone className="h-3 w-3 mr-2" />
         )}
-        Call
+        {callStatus === 'calling' ? 'Connecting...' : 
+         callStatus === 'connected' ? 'Connected' : 
+         callStatus === 'failed' ? 'Failed' : 'Call'}
       </Button>
+      
       <Button 
         variant="outline" 
         size="sm" 
