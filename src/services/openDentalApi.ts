@@ -1,5 +1,6 @@
 
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 // Types for Open Dental API responses
 export interface OpenDentalPatient {
@@ -40,31 +41,7 @@ export interface FollowUpTask {
   appointmentId?: string;
 }
 
-// Mock API endpoints for development
-// In production, these would connect to the actual Open Dental API endpoints
-const API_BASE_URL = "https://api.opendentalsoft.com/api/v1";
-const API_KEY = "YOUR_OPEN_DENTAL_API_KEY"; // Replace with actual API key in production
-
-async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const headers = {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${API_KEY}`,
-    ...options.headers
-  };
-
-  try {
-    const response = await fetch(url, { ...options, headers });
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status} ${response.statusText}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error("API request failed:", error);
-    throw error;
-  }
-}
-
+// Supabase API endpoints
 // Get tomorrow's cancellations
 export const fetchTomorrowCancellations = async (): Promise<OpenDentalCancellation[]> => {
   try {
@@ -73,78 +50,29 @@ export const fetchTomorrowCancellations = async (): Promise<OpenDentalCancellati
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowFormatted = tomorrow.toISOString().split('T')[0];
     
-    // In development, we'll return mock data
-    // In production, this would call the actual API
-    // return await fetchWithAuth(`/appointments/cancellations?date=${tomorrowFormatted}`);
+    const { data, error } = await supabase
+      .from('cancellations')
+      .select('*')
+      .eq('appointment_date', tomorrowFormatted);
     
-    // Mock data for development
-    return [
-      { 
-        appointmentId: "1", 
-        patientId: "P1001",
-        patientName: "Sarah Johnson", 
-        procedureCode: "D7140",
-        procedureDescription: "Tooth Extraction",
-        appointmentDate: tomorrowFormatted,
-        appointmentStatus: "Cancelled",
-        providerName: "Dr. Smith",
-        notes: "Patient requested a call back to reschedule.",
-        cancellationReason: "Personal emergency",
-        cancellationDate: new Date().toISOString().split('T')[0]
-      },
-      { 
-        appointmentId: "2", 
-        patientId: "P1002",
-        patientName: "Michael Chen", 
-        procedureCode: "D1110",
-        procedureDescription: "Cleaning",
-        appointmentDate: tomorrowFormatted,
-        appointmentStatus: "Cancelled",
-        providerName: "Dr. Johnson",
-        notes: "Patient needs to reschedule due to work conflict.",
-        cancellationReason: "Work conflict",
-        cancellationDate: new Date().toISOString().split('T')[0]
-      },
-      { 
-        appointmentId: "3", 
-        patientId: "P1003",
-        patientName: "Emily Williams", 
-        procedureCode: "D2140",
-        procedureDescription: "Filling",
-        appointmentDate: tomorrowFormatted,
-        appointmentStatus: "Cancelled",
-        providerName: "Dr. Davis",
-        notes: "",
-        cancellationReason: "Scheduling conflict",
-        cancellationDate: new Date().toISOString().split('T')[0]
-      },
-      { 
-        appointmentId: "4", 
-        patientId: "P1004",
-        patientName: "David Taylor", 
-        procedureCode: "D2790",
-        procedureDescription: "Crown",
-        appointmentDate: tomorrowFormatted,
-        appointmentStatus: "Cancelled",
-        providerName: "Dr. Wilson",
-        notes: "Patient requested to be seen sooner if possible.",
-        cancellationReason: "Feeling better",
-        cancellationDate: new Date().toISOString().split('T')[0]
-      },
-      { 
-        appointmentId: "5", 
-        patientId: "P1005",
-        patientName: "Jessica Brown", 
-        procedureCode: "D0140",
-        procedureDescription: "Consultation",
-        appointmentDate: tomorrowFormatted,
-        appointmentStatus: "Cancelled",
-        providerName: "Dr. Miller",
-        notes: "",
-        cancellationReason: "Transportation issues",
-        cancellationDate: new Date().toISOString().split('T')[0]
-      },
-    ];
+    if (error) {
+      throw error;
+    }
+    
+    // Map Supabase data to our interface format
+    return data.map(item => ({
+      appointmentId: item.appointment_id,
+      patientId: item.patient_id,
+      patientName: item.patient_name,
+      procedureCode: item.procedure_code,
+      procedureDescription: item.procedure_description,
+      appointmentDate: item.appointment_date,
+      appointmentStatus: 'Cancelled',
+      providerName: item.provider_name,
+      notes: item.notes || '',
+      cancellationReason: item.cancellation_reason,
+      cancellationDate: item.cancellation_date
+    }));
   } catch (error) {
     console.error("Failed to fetch tomorrow's cancellations:", error);
     throw error;
@@ -154,168 +82,59 @@ export const fetchTomorrowCancellations = async (): Promise<OpenDentalCancellati
 // Get patient details
 export const fetchPatientDetails = async (patientId: string): Promise<OpenDentalPatient> => {
   try {
-    // In production: return await fetchWithAuth(`/patients/${patientId}`);
+    const { data, error } = await supabase
+      .from('patients')
+      .select('*')
+      .eq('id', patientId)
+      .single();
     
-    // Mock data for development
-    const patients: Record<string, OpenDentalPatient> = {
-      "P1001": { 
-        patientId: "P1001", 
-        name: "Sarah Johnson", 
-        phoneNumber: "(555) 123-4567", 
-        email: "sarah.j@example.com",
-        preferredContactMethod: "phone"
-      },
-      "P1002": { 
-        patientId: "P1002", 
-        name: "Michael Chen", 
-        phoneNumber: "(555) 987-6543", 
-        email: "m.chen@example.com",
-        preferredContactMethod: "email"
-      },
-      "P1003": { 
-        patientId: "P1003", 
-        name: "Emily Williams", 
-        phoneNumber: "(555) 456-7890", 
-        email: "e.williams@example.com",
-        preferredContactMethod: "phone"
-      },
-      "P1004": { 
-        patientId: "P1004", 
-        name: "David Taylor", 
-        phoneNumber: "(555) 321-6547", 
-        email: "d.taylor@example.com",
-        preferredContactMethod: "email"
-      },
-      "P1005": { 
-        patientId: "P1005", 
-        name: "Jessica Brown", 
-        phoneNumber: "(555) 789-0123", 
-        email: "j.brown@example.com",
-        preferredContactMethod: "phone"
-      },
+    if (error) {
+      throw error;
+    }
+    
+    return {
+      patientId: data.id,
+      name: data.name,
+      phoneNumber: data.phone_number || '',
+      email: data.email || '',
+      preferredContactMethod: data.preferred_contact_method
     };
-    
-    return patients[patientId] || { 
+  } catch (error) {
+    console.error(`Failed to fetch patient details for ${patientId}:`, error);
+    // Return a default patient if not found
+    return { 
       patientId, 
       name: "Unknown Patient", 
       phoneNumber: "", 
       email: "",
       preferredContactMethod: "phone"
     };
-  } catch (error) {
-    console.error(`Failed to fetch patient details for ${patientId}:`, error);
-    throw error;
   }
 };
 
 // Get follow-up tasks
 export const fetchFollowUpTasks = async (): Promise<FollowUpTask[]> => {
   try {
-    // In production: return await fetchWithAuth('/followup-tasks');
+    const { data, error } = await supabase
+      .from('follow_up_tasks')
+      .select('*');
     
-    // Mock data for development
-    const today = new Date().toISOString().split('T')[0];
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowFormatted = tomorrow.toISOString().split('T')[0];
+    if (error) {
+      throw error;
+    }
     
-    const dayAfter = new Date();
-    dayAfter.setDate(dayAfter.getDate() + 2);
-    const dayAfterFormatted = dayAfter.toISOString().split('T')[0];
-    
-    return [
-      { 
-        id: "1", 
-        patientId: "P1001",
-        patientName: "Sarah Johnson", 
-        followUpType: "cancellation", 
-        dueDate: today, 
-        status: "pending", 
-        priority: "high",
-        contactInfo: "(555) 123-4567",
-        notes: "Patient requested a call back to reschedule.",
-        appointmentId: "1"
-      },
-      { 
-        id: "2", 
-        patientId: "P1002",
-        patientName: "Michael Chen", 
-        followUpType: "reschedule", 
-        dueDate: today, 
-        status: "pending", 
-        priority: "medium",
-        contactInfo: "(555) 987-6543",
-        notes: "Patient needs to reschedule due to work conflict.",
-        appointmentId: "2"
-      },
-      { 
-        id: "3", 
-        patientId: "P1003",
-        patientName: "Emily Williams", 
-        followUpType: "treatment", 
-        dueDate: today, 
-        status: "completed", 
-        priority: "medium",
-        contactInfo: "(555) 456-7890",
-        notes: "Called to check on recovery after wisdom tooth extraction."
-      },
-      { 
-        id: "4", 
-        patientId: "P1004",
-        patientName: "David Taylor", 
-        followUpType: "payment", 
-        dueDate: tomorrowFormatted, 
-        status: "pending", 
-        priority: "high",
-        contactInfo: "(555) 321-6547",
-        notes: "Outstanding balance of $450 - needs to discuss payment plan."
-      },
-      { 
-        id: "5", 
-        patientId: "P1005",
-        patientName: "Jessica Brown", 
-        followUpType: "cancellation", 
-        dueDate: today, 
-        status: "cancelled", 
-        priority: "low",
-        contactInfo: "(555) 789-0123",
-        notes: "Appointment cancelled due to illness.",
-        appointmentId: "5"
-      },
-      { 
-        id: "6", 
-        patientId: "P1006",
-        patientName: "Robert Martinez", 
-        followUpType: "treatment", 
-        dueDate: tomorrowFormatted, 
-        status: "pending", 
-        priority: "medium",
-        contactInfo: "(555) 234-5678",
-        notes: "Follow up on crown placement."
-      },
-      {
-        id: "7",
-        patientId: "P1007",
-        patientName: "Amanda Lewis",
-        followUpType: "treatment",
-        dueDate: dayAfterFormatted,
-        status: "pending",
-        priority: "medium",
-        contactInfo: "(555) 876-5432",
-        notes: "Check healing after extraction"
-      },
-      {
-        id: "8",
-        patientId: "P1008",
-        patientName: "Thomas Garcia",
-        followUpType: "payment",
-        dueDate: dayAfterFormatted,
-        status: "pending",
-        priority: "high",
-        contactInfo: "(555) 345-6789",
-        notes: "Discussing insurance claim rejection"
-      }
-    ];
+    return data.map(item => ({
+      id: item.id,
+      patientId: item.patient_id,
+      patientName: item.patient_name,
+      followUpType: item.follow_up_type,
+      dueDate: item.due_date,
+      status: item.status,
+      priority: item.priority,
+      contactInfo: item.contact_info,
+      notes: item.notes || '',
+      appointmentId: item.appointment_id
+    }));
   } catch (error) {
     console.error("Failed to fetch follow-up tasks:", error);
     throw error;
@@ -325,17 +144,37 @@ export const fetchFollowUpTasks = async (): Promise<FollowUpTask[]> => {
 // Create a new follow-up task
 export const createFollowUpTask = async (task: Omit<FollowUpTask, "id">): Promise<FollowUpTask> => {
   try {
-    // In production, this would call the actual API
-    // return await fetchWithAuth('/followup-tasks', {
-    //   method: 'POST',
-    //   body: JSON.stringify(task)
-    // });
+    const { data, error } = await supabase
+      .from('follow_up_tasks')
+      .insert({
+        patient_id: task.patientId,
+        patient_name: task.patientName,
+        follow_up_type: task.followUpType,
+        due_date: task.dueDate,
+        status: task.status,
+        priority: task.priority,
+        contact_info: task.contactInfo,
+        notes: task.notes,
+        appointment_id: task.appointmentId
+      })
+      .select()
+      .single();
     
-    // Mock response for development
-    const newId = Math.floor(Math.random() * 1000).toString();
+    if (error) {
+      throw error;
+    }
+    
     return {
-      id: newId,
-      ...task
+      id: data.id,
+      patientId: data.patient_id,
+      patientName: data.patient_name,
+      followUpType: data.follow_up_type,
+      dueDate: data.due_date,
+      status: data.status,
+      priority: data.priority,
+      contactInfo: data.contact_info,
+      notes: data.notes || '',
+      appointmentId: data.appointment_id
     };
   } catch (error) {
     console.error("Failed to create follow-up task:", error);
@@ -346,23 +185,43 @@ export const createFollowUpTask = async (task: Omit<FollowUpTask, "id">): Promis
 // Update a follow-up task
 export const updateFollowUpTask = async (taskId: string, updates: Partial<FollowUpTask>): Promise<FollowUpTask> => {
   try {
-    // In production: return await fetchWithAuth(`/followup-tasks/${taskId}`, {
-    //   method: 'PATCH',
-    //   body: JSON.stringify(updates)
-    // });
+    // Convert from camelCase to snake_case for Supabase
+    const supabaseUpdates: any = {};
+    if (updates.patientId) supabaseUpdates.patient_id = updates.patientId;
+    if (updates.patientName) supabaseUpdates.patient_name = updates.patientName;
+    if (updates.followUpType) supabaseUpdates.follow_up_type = updates.followUpType;
+    if (updates.dueDate) supabaseUpdates.due_date = updates.dueDate;
+    if (updates.status) supabaseUpdates.status = updates.status;
+    if (updates.priority) supabaseUpdates.priority = updates.priority;
+    if (updates.contactInfo) supabaseUpdates.contact_info = updates.contactInfo;
+    if (updates.notes) supabaseUpdates.notes = updates.notes;
+    if (updates.appointmentId) supabaseUpdates.appointment_id = updates.appointmentId;
     
-    // Mock response for development
+    // Add updated_at timestamp
+    supabaseUpdates.updated_at = new Date().toISOString();
+    
+    const { data, error } = await supabase
+      .from('follow_up_tasks')
+      .update(supabaseUpdates)
+      .eq('id', taskId)
+      .select()
+      .single();
+    
+    if (error) {
+      throw error;
+    }
+    
     return {
-      id: taskId,
-      patientId: updates.patientId || "unknown",
-      patientName: updates.patientName || "Unknown",
-      followUpType: updates.followUpType || "other",
-      dueDate: updates.dueDate || new Date().toISOString().split('T')[0],
-      status: updates.status || "pending",
-      priority: updates.priority || "medium",
-      contactInfo: updates.contactInfo || "",
-      notes: updates.notes || "",
-      ...updates
+      id: data.id,
+      patientId: data.patient_id,
+      patientName: data.patient_name,
+      followUpType: data.follow_up_type,
+      dueDate: data.due_date,
+      status: data.status,
+      priority: data.priority,
+      contactInfo: data.contact_info,
+      notes: data.notes || '',
+      appointmentId: data.appointment_id
     };
   } catch (error) {
     console.error(`Failed to update follow-up task ${taskId}:`, error);
@@ -373,13 +232,17 @@ export const updateFollowUpTask = async (taskId: string, updates: Partial<Follow
 // Contact patient (phone or email)
 export const contactPatient = async (patientId: string, method: 'phone' | 'email'): Promise<boolean> => {
   try {
-    // In production: return await fetchWithAuth(`/patients/${patientId}/contact`, {
-    //   method: 'POST',
-    //   body: JSON.stringify({ method })
+    // In a real implementation, this would initiate a call or send an email
+    // For now, we'll just log it and simulate a successful contact
+    console.log(`Contacting patient ${patientId} via ${method}`);
+    
+    // You could log the contact attempt to a separate table if needed
+    // await supabase.from('patient_contacts').insert({
+    //   patient_id: patientId,
+    //   contact_method: method,
+    //   timestamp: new Date()
     // });
     
-    // Mock response for development
-    console.log(`Contacting patient ${patientId} via ${method}`);
     return true;
   } catch (error) {
     console.error(`Failed to contact patient ${patientId} via ${method}:`, error);
@@ -390,33 +253,32 @@ export const contactPatient = async (patientId: string, method: 'phone' | 'email
 // Get stats for the dashboard
 export const fetchDashboardStats = async () => {
   try {
-    // In production: return await fetchWithAuth('/dashboard/stats');
+    const { data, error } = await supabase
+      .from('dashboard_stats')
+      .select('*')
+      .order('last_updated', { ascending: false })
+      .limit(1)
+      .single();
     
-    // Mock data for development
+    if (error) {
+      throw error;
+    }
+    
     return {
-      // Follow-ups stats
-      todaysFollowUps: 12,
-      pendingFollowUps: 4,
-      completedFollowUps: 8,
-      
-      // Inventory stats
-      lowStockItems: 15,
-      restockedItems: 3,
-      todayInventoryUpdates: 5,
-      
-      // Staff stats
-      staffOnDuty: 7,
-      pendingTimeOff: 2,
-      shiftsCompleted: 5,
-      
-      // Billing stats
-      pendingPayments: 24,
-      clearedPayments: 12,
-      todayTransactions: 18,
-      
-      // Misc stats
-      nextDayCancellations: 5,
-      urgentTasks: 3
+      todaysFollowUps: data.todays_follow_ups,
+      pendingFollowUps: data.pending_follow_ups,
+      completedFollowUps: data.completed_follow_ups,
+      lowStockItems: data.low_stock_items,
+      restockedItems: data.restocked_items,
+      todayInventoryUpdates: data.today_inventory_updates,
+      staffOnDuty: data.staff_on_duty,
+      pendingTimeOff: data.pending_time_off,
+      shiftsCompleted: data.shifts_completed,
+      pendingPayments: data.pending_payments,
+      clearedPayments: data.cleared_payments,
+      todayTransactions: data.today_transactions,
+      nextDayCancellations: data.next_day_cancellations,
+      urgentTasks: data.urgent_tasks
     };
   } catch (error) {
     console.error("Failed to fetch dashboard stats:", error);
@@ -425,7 +287,6 @@ export const fetchDashboardStats = async () => {
 };
 
 // React Query hooks
-
 export function useTomorrowCancellations() {
   return useQuery({
     queryKey: ['cancellations', 'tomorrow'],
@@ -456,21 +317,26 @@ export function useDashboardStats() {
 }
 
 export function useCreateFollowUpTask() {
+  const queryClient = useQueryClient();
+  
   return useMutation({
     mutationFn: createFollowUpTask,
     onSuccess: () => {
       // Invalidate relevant queries to refresh data
-      // This would be implemented with a QueryClient in the actual code
+      queryClient.invalidateQueries({ queryKey: ['followUpTasks'] });
     }
   });
 }
 
 export function useUpdateFollowUpTask() {
+  const queryClient = useQueryClient();
+  
   return useMutation({
     mutationFn: ({ taskId, updates }: { taskId: string, updates: Partial<FollowUpTask> }) => 
       updateFollowUpTask(taskId, updates),
     onSuccess: () => {
       // Invalidate relevant queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['followUpTasks'] });
     }
   });
 }

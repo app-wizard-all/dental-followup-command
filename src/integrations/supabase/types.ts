@@ -9,7 +9,183 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      cancellations: {
+        Row: {
+          appointment_date: string
+          appointment_id: string
+          cancellation_date: string
+          cancellation_reason: string
+          created_at: string
+          id: string
+          notes: string | null
+          patient_id: string
+          patient_name: string
+          procedure_code: string
+          procedure_description: string
+          provider_name: string
+        }
+        Insert: {
+          appointment_date: string
+          appointment_id: string
+          cancellation_date?: string
+          cancellation_reason: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          patient_name: string
+          procedure_code: string
+          procedure_description: string
+          provider_name: string
+        }
+        Update: {
+          appointment_date?: string
+          appointment_id?: string
+          cancellation_date?: string
+          cancellation_reason?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          patient_name?: string
+          procedure_code?: string
+          procedure_description?: string
+          provider_name?: string
+        }
+        Relationships: []
+      }
+      dashboard_stats: {
+        Row: {
+          cleared_payments: number
+          completed_follow_ups: number
+          id: string
+          last_updated: string
+          low_stock_items: number
+          next_day_cancellations: number
+          pending_follow_ups: number
+          pending_payments: number
+          pending_time_off: number
+          restocked_items: number
+          shifts_completed: number
+          staff_on_duty: number
+          today_inventory_updates: number
+          today_transactions: number
+          todays_follow_ups: number
+          urgent_tasks: number
+        }
+        Insert: {
+          cleared_payments?: number
+          completed_follow_ups?: number
+          id?: string
+          last_updated?: string
+          low_stock_items?: number
+          next_day_cancellations?: number
+          pending_follow_ups?: number
+          pending_payments?: number
+          pending_time_off?: number
+          restocked_items?: number
+          shifts_completed?: number
+          staff_on_duty?: number
+          today_inventory_updates?: number
+          today_transactions?: number
+          todays_follow_ups?: number
+          urgent_tasks?: number
+        }
+        Update: {
+          cleared_payments?: number
+          completed_follow_ups?: number
+          id?: string
+          last_updated?: string
+          low_stock_items?: number
+          next_day_cancellations?: number
+          pending_follow_ups?: number
+          pending_payments?: number
+          pending_time_off?: number
+          restocked_items?: number
+          shifts_completed?: number
+          staff_on_duty?: number
+          today_inventory_updates?: number
+          today_transactions?: number
+          todays_follow_ups?: number
+          urgent_tasks?: number
+        }
+        Relationships: []
+      }
+      follow_up_tasks: {
+        Row: {
+          appointment_id: string | null
+          contact_info: string
+          created_at: string
+          due_date: string
+          follow_up_type: string
+          id: string
+          notes: string | null
+          patient_id: string
+          patient_name: string
+          priority: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          contact_info: string
+          created_at?: string
+          due_date: string
+          follow_up_type: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          patient_name: string
+          priority?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string | null
+          contact_info?: string
+          created_at?: string
+          due_date?: string
+          follow_up_type?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          patient_name?: string
+          priority?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      patients: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone_number: string | null
+          preferred_contact_method: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id: string
+          name: string
+          phone_number?: string | null
+          preferred_contact_method?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone_number?: string | null
+          preferred_contact_method?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
