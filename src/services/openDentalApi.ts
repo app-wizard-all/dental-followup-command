@@ -229,6 +229,57 @@ export const updateFollowUpTask = async (taskId: string, updates: Partial<Follow
   }
 };
 
+// Get follow-up task counts for dashboard
+export const fetchFollowUpCounts = async () => {
+  try {
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Count today's follow-ups
+    const { count: todaysCount, error: todaysError } = await supabase
+      .from('follow_up_tasks')
+      .select('*', { count: 'exact', head: true })
+      .eq('due_date', today);
+      
+    if (todaysError) throw todaysError;
+    
+    // Count pending follow-ups
+    const { count: pendingCount, error: pendingError } = await supabase
+      .from('follow_up_tasks')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pending');
+      
+    if (pendingError) throw pendingError;
+    
+    // Count completed follow-ups
+    const { count: completedCount, error: completedError } = await supabase
+      .from('follow_up_tasks')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'completed');
+      
+    if (completedError) throw completedError;
+    
+    // Count urgent (high priority) tasks
+    const { count: urgentCount, error: urgentError } = await supabase
+      .from('follow_up_tasks')
+      .select('*', { count: 'exact', head: true })
+      .eq('priority', 'high')
+      .eq('status', 'pending');
+      
+    if (urgentError) throw urgentError;
+    
+    return {
+      todaysFollowUps: todaysCount || 0,
+      pendingFollowUps: pendingCount || 0,
+      completedFollowUps: completedCount || 0,
+      urgentTasks: urgentCount || 0
+    };
+  } catch (error) {
+    console.error("Failed to fetch follow-up counts:", error);
+    throw error;
+  }
+};
+
 // Contact patient (phone or email)
 export const contactPatient = async (patientId: string, method: 'phone' | 'email'): Promise<boolean> => {
   try {
@@ -250,9 +301,13 @@ export const contactPatient = async (patientId: string, method: 'phone' | 'email
   }
 };
 
-// Get stats for the dashboard
+// Get stats for the dashboard - updated to use real counts for follow-ups
 export const fetchDashboardStats = async () => {
   try {
+    // Get follow-up counts first
+    const followUpCounts = await fetchFollowUpCounts();
+    
+    // Then get the rest of the dashboard stats
     const { data, error } = await supabase
       .from('dashboard_stats')
       .select('*')
@@ -264,10 +319,15 @@ export const fetchDashboardStats = async () => {
       throw error;
     }
     
+    // Merge follow-up counts with other dashboard stats
     return {
-      todaysFollowUps: data.todays_follow_ups,
-      pendingFollowUps: data.pending_follow_ups,
-      completedFollowUps: data.completed_follow_ups,
+      // Use real counts for follow-ups
+      todaysFollowUps: followUpCounts.todaysFollowUps,
+      pendingFollowUps: followUpCounts.pendingFollowUps,
+      completedFollowUps: followUpCounts.completedFollowUps,
+      urgentTasks: followUpCounts.urgentTasks,
+      
+      // Use existing data for other stats
       lowStockItems: data.low_stock_items,
       restockedItems: data.restocked_items,
       todayInventoryUpdates: data.today_inventory_updates,
@@ -277,8 +337,7 @@ export const fetchDashboardStats = async () => {
       pendingPayments: data.pending_payments,
       clearedPayments: data.cleared_payments,
       todayTransactions: data.today_transactions,
-      nextDayCancellations: data.next_day_cancellations,
-      urgentTasks: data.urgent_tasks
+      nextDayCancellations: data.next_day_cancellations
     };
   } catch (error) {
     console.error("Failed to fetch dashboard stats:", error);
@@ -309,6 +368,13 @@ export function useFollowUpTasks() {
   });
 }
 
+export function useFollowUpCounts() {
+  return useQuery({
+    queryKey: ['followUpCounts'],
+    queryFn: fetchFollowUpCounts
+  });
+}
+
 export function useDashboardStats() {
   return useQuery({
     queryKey: ['dashboardStats'],
@@ -324,6 +390,8 @@ export function useCreateFollowUpTask() {
     onSuccess: () => {
       // Invalidate relevant queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['followUpTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['followUpCounts'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
     }
   });
 }
@@ -337,6 +405,8 @@ export function useUpdateFollowUpTask() {
     onSuccess: () => {
       // Invalidate relevant queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['followUpTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['followUpCounts'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
     }
   });
 }

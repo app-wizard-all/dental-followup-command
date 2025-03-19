@@ -29,7 +29,7 @@ import { TaskList } from "@/components/TaskList";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useDashboardStats, useTomorrowCancellations, useContactPatient } from "@/services/openDentalApi";
+import { useDashboardStats, useTomorrowCancellations, useContactPatient, useFollowUpCounts } from "@/services/openDentalApi";
 
 export function Dashboard() {
   const { toast } = useToast();
@@ -37,6 +37,7 @@ export function Dashboard() {
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
+  const { data: followUpCounts, isLoading: countsLoading } = useFollowUpCounts();
   const { data: cancellations, isLoading: cancellationsLoading } = useTomorrowCancellations();
   const contactPatientMutation = useContactPatient();
   
@@ -67,11 +68,11 @@ export function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard 
           title="Today's Follow-ups" 
-          value={statsLoading ? 0 : (stats?.todaysFollowUps || 0)} 
+          value={countsLoading ? 0 : (followUpCounts?.todaysFollowUps || 0)} 
           icon={<CheckCircle className="h-5 w-5 text-green-500" />}
-          description={statsLoading 
+          description={countsLoading 
             ? "Loading..." 
-            : `${stats?.pendingFollowUps || 0} pending, ${stats?.completedFollowUps || 0} completed`}
+            : `${followUpCounts?.pendingFollowUps || 0} pending, ${followUpCounts?.completedFollowUps || 0} completed`}
           bgColor="bg-green-50"
         />
         <StatCard 
@@ -83,7 +84,7 @@ export function Dashboard() {
         />
         <StatCard 
           title="Urgent Tasks" 
-          value={statsLoading ? 0 : (stats?.urgentTasks || 0)} 
+          value={countsLoading ? 0 : (followUpCounts?.urgentTasks || 0)} 
           icon={<AlertCircle className="h-5 w-5 text-red-500" />}
           description="High priority" 
           bgColor="bg-red-50"

@@ -21,12 +21,13 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { StatCard } from "@/components/StatCard";
+import { useFollowUpCounts } from "@/services/openDentalApi";
 
 export function FollowUpsTab() {
   const [filter, setFilter] = useState<"all" | "pending" | "completed" | "cancelled">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("all");
+  const { data: followUpCounts, isLoading: countsLoading } = useFollowUpCounts();
 
   // Handle category change
   const handleCategoryChange = (category: string) => {
@@ -90,7 +91,7 @@ export function FollowUpsTab() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">12</div>
+              <div className="text-2xl font-bold">{countsLoading ? "..." : followUpCounts?.pendingFollowUps || 0}</div>
               <CheckCircle className="h-5 w-5 text-dental-teal" />
             </div>
           </CardContent>
@@ -101,7 +102,7 @@ export function FollowUpsTab() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">3</div>
+              <div className="text-2xl font-bold">{countsLoading ? "..." : followUpCounts?.urgentTasks || 0}</div>
               <AlertTriangle className="h-5 w-5 text-amber-500" />
             </div>
           </CardContent>
@@ -112,7 +113,7 @@ export function FollowUpsTab() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">8</div>
+              <div className="text-2xl font-bold">{countsLoading ? "..." : followUpCounts?.todaysFollowUps || 0}</div>
               <Clock className="h-5 w-5 text-dental-blue/70" />
             </div>
           </CardContent>
@@ -123,7 +124,7 @@ export function FollowUpsTab() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">24</div>
+              <div className="text-2xl font-bold">{countsLoading ? "..." : followUpCounts?.completedFollowUps || 0}</div>
               <CheckCircle className="h-5 w-5 text-green-500" />
             </div>
           </CardContent>
