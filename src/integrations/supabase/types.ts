@@ -9,6 +9,54 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      api_keys: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      call_logs: {
+        Row: {
+          call_id: string | null
+          call_time: string
+          created_at: string
+          id: string
+          phone_number: string
+          status: string
+        }
+        Insert: {
+          call_id?: string | null
+          call_time?: string
+          created_at?: string
+          id?: string
+          phone_number: string
+          status: string
+        }
+        Update: {
+          call_id?: string | null
+          call_time?: string
+          created_at?: string
+          id?: string
+          phone_number?: string
+          status?: string
+        }
+        Relationships: []
+      }
       cancellations: {
         Row: {
           appointment_date: string
@@ -153,6 +201,33 @@ export type Database = {
           priority?: string
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      patient_contacts: {
+        Row: {
+          call_id: string | null
+          contact_method: string
+          created_at: string
+          id: string
+          patient_id: string
+          timestamp: string
+        }
+        Insert: {
+          call_id?: string | null
+          contact_method: string
+          created_at?: string
+          id?: string
+          patient_id: string
+          timestamp?: string
+        }
+        Update: {
+          call_id?: string | null
+          contact_method?: string
+          created_at?: string
+          id?: string
+          patient_id?: string
+          timestamp?: string
         }
         Relationships: []
       }

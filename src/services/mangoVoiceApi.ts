@@ -70,7 +70,7 @@ export const initiateCall = async (phoneNumber: string): Promise<MangoVoiceCallR
       };
     }
     
-    // Log the call attempt to the database (optional)
+    // Log the call attempt to the database
     await supabase.from('call_logs').insert({
       phone_number: cleanedPhoneNumber,
       call_time: new Date().toISOString(),
