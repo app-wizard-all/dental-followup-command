@@ -6,6 +6,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { RoleSelector } from "@/components/RoleSelector";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -35,6 +36,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         return "Staff Management";
       case "billing":
         return "Billing & Accounting";
+      case "patientNotes":
+        return "Patient Notes";
       default:
         return "DentalTrack Dashboard";
     }
@@ -45,9 +48,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen flex w-full bg-dental-mint/10">
         <AppSidebar />
         <main className="flex-1 p-4 md:p-6">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
             <h1 className="text-2xl font-bold text-dental-gray">{getSectionTitle()}</h1>
-            <SidebarTrigger />
+            <div className="flex items-center gap-4">
+              <RoleSelector />
+              <SidebarTrigger />
+            </div>
           </div>
           {children}
         </main>
