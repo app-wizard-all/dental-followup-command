@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -22,12 +23,12 @@ export function RoleSelector() {
     navigate({
       pathname: location.pathname,
       search: newSearchParams.toString(),
-    });
+    }, { replace: true });
   };
 
   return (
     <div className="flex items-center space-x-4 bg-white p-3 rounded-lg shadow-sm border">
-      <Label htmlFor="role-switch" className="font-medium">
+      <Label htmlFor="role-switch" className={`font-medium ${currentRole === "officeManager" ? "text-dental-teal" : "text-muted-foreground"}`}>
         Office Manager
       </Label>
       <Switch 
@@ -35,7 +36,7 @@ export function RoleSelector() {
         checked={currentRole === "provider"}
         onCheckedChange={handleRoleChange}
       />
-      <Label htmlFor="role-switch" className="font-medium">
+      <Label htmlFor="role-switch" className={`font-medium ${currentRole === "provider" ? "text-dental-teal" : "text-muted-foreground"}`}>
         Provider
       </Label>
     </div>

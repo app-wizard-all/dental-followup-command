@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { usePatients } from "@/hooks/usePatients";
 import { Textarea } from "@/components/ui/textarea";
-import { Mic, MicOff, Save, Search, Upload } from "lucide-react";
+import { Mic, MicOff, Save, Search, Upload, AlertCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { addDays } from "date-fns";
 import { DateRange } from "react-day-picker";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function PatientNotesTab() {
   // State for date range
@@ -43,6 +44,7 @@ export function PatientNotesTab() {
   const [recordedText, setRecordedText] = useState("");
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const [permissionError, setPermissionError] = useState<string | null>(null);
   
   // Mock fetch patients - in a real app, replace with an actual API call
   const { patients, isLoading } = usePatients(dateRange.from, dateRange.to);
@@ -52,10 +54,28 @@ export function PatientNotesTab() {
     patient.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Reset permission error when component unmounts
+  useEffect(() => {
+    return () => {
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+      }
+    };
+  }, [mediaRecorder]);
+
   // Start recording function
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Reset any previous errors
+      setPermissionError(null);
+      
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        } 
+      });
       const recorder = new MediaRecorder(stream);
       setMediaRecorder(recorder);
       
@@ -117,6 +137,15 @@ export function PatientNotesTab() {
       });
     } catch (error) {
       console.error("Error accessing microphone:", error);
+      
+      // Check if it's a permission error
+      if (error instanceof DOMException && 
+          (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError')) {
+        setPermissionError("Microphone access was denied. Please allow access in your browser settings and try again.");
+      } else {
+        setPermissionError(`Unable to access microphone: ${error instanceof Error ? error.message : String(error)}`);
+      }
+      
       toast({
         title: "Unable to access microphone",
         description: "Please make sure you've given permission to use the microphone.",
@@ -278,6 +307,14 @@ export function PatientNotesTab() {
           <CardContent>
             {selectedPatient ? (
               <div className="space-y-4">
+                {permissionError && (
+                  <Alert variant="destructive" className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Microphone Access Error</AlertTitle>
+                    <AlertDescription>{permissionError}</AlertDescription>
+                  </Alert>
+                )}
+                
                 <div className="flex justify-center space-x-4">
                   {!isRecording ? (
                     <Button 

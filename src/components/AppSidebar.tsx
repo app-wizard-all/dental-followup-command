@@ -1,4 +1,3 @@
-
 import { 
   Calendar, 
   Users, 
@@ -8,7 +7,8 @@ import {
   Home,
   CheckSquare,
   PlusCircle,
-  HelpCircle
+  HelpCircle,
+  FileText
 } from "lucide-react";
 
 import {
@@ -26,9 +26,9 @@ import {
 
 import { useNavigate, useLocation } from "react-router-dom";
 import { DashboardSection } from "./OfficeManagerDashboard";
+import { ProviderSection } from "./ProviderDashboard";
 
-// Menu items
-const items = [
+const officeManagerItems = [
   {
     title: "Dashboard",
     url: "/",
@@ -78,32 +78,67 @@ const items = [
   },
 ];
 
+const providerItems = [
+  {
+    title: "Dashboard",
+    url: "/",
+    icon: Home,
+    section: null,
+  },
+  {
+    title: "Patient Notes",
+    url: "/?section=patientNotes",
+    icon: FileText,
+    section: "patientNotes" as ProviderSection,
+  },
+  {
+    title: "Help Guide",
+    url: "/help-guide",
+    icon: HelpCircle,
+    section: null,
+  },
+  {
+    title: "Settings",
+    url: "#",
+    icon: Settings,
+  },
+];
+
 export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const currentSection = searchParams.get('section');
+  const userRole = searchParams.get('role') || 'officeManager';
   const isOnMainDashboard = location.pathname === "/" && !searchParams.has('section');
   const isOnAddTask = location.pathname === "/add-task";
   const isOnHelpGuide = location.pathname === "/help-guide";
 
-  const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, url: string, section?: DashboardSection | null) => {
+  const items = userRole === 'provider' ? providerItems : officeManagerItems;
+
+  const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, url: string, section?: DashboardSection | ProviderSection | null) => {
     e.preventDefault();
     
+    const newSearchParams = new URLSearchParams();
+    if (userRole) {
+      newSearchParams.set('role', userRole);
+    }
+    
     if (url === "/" && section === null) {
-      // Main dashboard - clear section parameter
-      navigate('/');
+      navigate(`/?${newSearchParams.toString()}`);
     } else if (url === "/add-task") {
-      // Navigate to Add Task page
-      navigate('/add-task');
+      navigate(`/add-task?${newSearchParams.toString()}`);
     } else if (url === "/help-guide") {
-      // Navigate to Help Guide page
-      navigate('/help-guide');
+      navigate(`/help-guide?${newSearchParams.toString()}`);
     } else if (section) {
-      // Update URL with section param
-      navigate(`/?section=${section}`);
+      newSearchParams.set('section', section);
+      navigate(`/?${newSearchParams.toString()}`);
     } else {
-      navigate(url);
+      if (url.startsWith('/')) {
+        navigate(`${url}?${newSearchParams.toString()}`);
+      } else {
+        navigate(url);
+      }
     }
   };
 
@@ -122,7 +157,7 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Management</SidebarGroupLabel>
+          <SidebarGroupLabel>{userRole === 'provider' ? 'Provider' : 'Management'}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
