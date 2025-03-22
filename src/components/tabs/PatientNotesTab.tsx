@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
@@ -13,6 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { addDays } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { supabase } from "@/integrations/supabase/client";
 
 export function PatientNotesTab() {
   // State for date range
@@ -45,6 +45,7 @@ export function PatientNotesTab() {
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const [permissionError, setPermissionError] = useState<string | null>(null);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   
   // Mock fetch patients - in a real app, replace with an actual API call
   const { patients, isLoading } = usePatients(dateRange.from, dateRange.to);
@@ -62,6 +63,36 @@ export function PatientNotesTab() {
       }
     };
   }, [mediaRecorder]);
+
+  // Simulated transcription, will be replaced with a real API call in production
+  const simulateTranscription = (audioBlob: Blob): Promise<string> => {
+    return new Promise((resolve) => {
+      // In a real implementation, this would be an API call to a transcription service
+      setTimeout(() => {
+        // Generate random length for the transcription
+        const sentences = [
+          "The patient is responding well to treatment.",
+          "Patient reports reduced pain in the affected area.",
+          "Follow-up appointment scheduled for next week.",
+          "Prescribed medication seems to be effective.",
+          "Patient mentions some side effects that we should monitor.",
+          "The healing process is progressing as expected.",
+          "Patient has been following the recommended exercise routine.",
+          "We discussed potential changes to the treatment plan."
+        ];
+        
+        // Select 2-4 random sentences
+        const count = Math.floor(Math.random() * 3) + 2;
+        let result = "";
+        for (let i = 0; i < count; i++) {
+          const randomIndex = Math.floor(Math.random() * sentences.length);
+          result += sentences[randomIndex] + " ";
+        }
+        
+        resolve(result.trim());
+      }, 1500);
+    });
+  };
 
   // Start recording function
   const startRecording = async () => {
@@ -83,7 +114,9 @@ export function PatientNotesTab() {
       setAudioChunks([]);
       
       recorder.ondataavailable = (e) => {
-        setAudioChunks(prev => [...prev, e.data]);
+        if (e.data.size > 0) {
+          setAudioChunks(prev => [...prev, e.data]);
+        }
       };
       
       recorder.onstop = async () => {
@@ -91,34 +124,34 @@ export function PatientNotesTab() {
           // Convert audio chunks to blob
           const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
           
-          // Convert blob to base64
-          const reader = new FileReader();
-          reader.readAsDataURL(audioBlob);
-          reader.onloadend = async () => {
-            const base64Audio = reader.result?.toString().split(',')[1];
-            
-            if (base64Audio) {
-              toast({
-                title: "Transcribing audio...",
-                description: "Please wait while we process your recording.",
-              });
-              
-              // In a real implementation, we would send this to our backend API
-              // For now, let's simulate a response after a delay
-              setTimeout(() => {
-                // This is where you would normally get the response from your API
-                const mockTranscription = "This is a simulated transcription. The patient is responding well to treatment and showed improvement in their condition.";
-                setRecordedText(prev => prev + " " + mockTranscription);
-                
-                toast({
-                  title: "Transcription complete",
-                  description: "Your recording has been processed successfully.",
-                });
-              }, 2000);
-            }
-          };
+          // Signal that transcription is in progress
+          setIsTranscribing(true);
+          
+          toast({
+            title: "Transcribing audio...",
+            description: "Please wait while we process your recording.",
+          });
+          
+          // In a real implementation, we would send this to our backend API
+          const transcription = await simulateTranscription(audioBlob);
+          
+          // Update the recorded text state
+          setRecordedText(prev => {
+            const newText = prev ? `${prev}\n\n${transcription}` : transcription;
+            return newText;
+          });
+          
+          toast({
+            title: "Transcription complete",
+            description: "Your recording has been processed successfully.",
+          });
+          
+          // Reset transcribing flag
+          setIsTranscribing(false);
         } catch (error) {
           console.error("Error processing audio:", error);
+          setIsTranscribing(false);
+          
           toast({
             title: "Transcription failed",
             description: "There was an error processing your recording.",
@@ -341,6 +374,23 @@ export function PatientNotesTab() {
                   <div className="text-center p-4 bg-red-50 rounded-md border border-red-200 animate-pulse">
                     <p className="font-semibold text-red-600">Recording in progress...</p>
                     <p className="text-sm text-red-500">Speak clearly into your microphone</p>
+                  </div>
+                )}
+                
+                {isTranscribing && (
+                  <div className="text-center p-4 bg-blue-50 rounded-md border border-blue-200">
+                    <p className="font-semibold text-blue-600">Transcribing audio...</p>
+                    <div className="mt-2 flex justify-center">
+                      <div className="flex space-x-1">
+                        {[...Array(3)].map((_, i) => (
+                          <div 
+                            key={i} 
+                            className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" 
+                            style={{ animationDelay: `${i * 0.1}s` }}
+                          />
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 )}
                 
