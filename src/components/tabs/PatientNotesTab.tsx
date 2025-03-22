@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Mic, MicOff, Save, Search, Upload } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { addDays } from "date-fns";
+import { DateRange } from "react-day-picker";
 
 export function PatientNotesTab() {
   // State for date range
@@ -18,6 +19,15 @@ export function PatientNotesTab() {
     from: new Date(),
     to: addDays(new Date(), 0),
   });
+  
+  // Handle date range changes with proper type conversion
+  const handleDateRangeChange = (newRange: DateRange) => {
+    // Ensure that both from and to dates are present
+    setDateRange({
+      from: newRange.from || new Date(),
+      to: newRange.to || newRange.from || new Date(),
+    });
+  };
   
   // Search query state
   const [searchQuery, setSearchQuery] = useState("");
@@ -196,7 +206,7 @@ export function PatientNotesTab() {
           <Label htmlFor="date-range" className="mb-2 block">Date Range</Label>
           <DateRangePicker 
             value={dateRange}
-            onValueChange={setDateRange}
+            onValueChange={handleDateRangeChange}
           />
         </div>
         <div className="flex-1 w-full">
