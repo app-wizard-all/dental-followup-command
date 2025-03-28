@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -6,11 +5,16 @@ import {
   Users, 
   Briefcase, 
   Badge, 
-  Calendar,
-  Search 
+  Calendar as CalendarIcon,
+  Search,
+  Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { TimeTrackingTab } from "@/components/staff/TimeTrackingTab";
+import { StaffCalendarTab } from "@/components/staff/StaffCalendarTab";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -24,11 +28,20 @@ import {
 export function StaffTab() {
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Handle category change
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category);
     setSearchQuery("");
+  };
+
+  // Handle add staff button click
+  const handleAddStaff = () => {
+    // Create new search params keeping the role parameter
+    const searchParams = new URLSearchParams(location.search);
+    navigate(`/add-staff?${searchParams.toString()}`);
   };
 
   return (
@@ -69,7 +82,7 @@ export function StaffTab() {
               className={navigationMenuTriggerStyle() + (activeCategory === "scheduling" ? " bg-accent" : "")}
               onClick={() => handleCategoryChange("scheduling")}
             >
-              <Calendar className="h-4 w-4 mr-2" />
+              <CalendarIcon className="h-4 w-4 mr-2" />
               Scheduling
             </NavigationMenuLink>
           </NavigationMenuItem>
@@ -112,7 +125,7 @@ export function StaffTab() {
         </Card>
       </div>
       
-      <div className="flex items-center gap-4 mb-4">
+      <div className="flex items-center justify-between gap-4 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -123,44 +136,30 @@ export function StaffTab() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
+        <Button onClick={handleAddStaff}>
+          <UserPlus className="h-4 w-4 mr-2" />
+          Add Staff
+        </Button>
       </div>
       
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>
-              {activeCategory === "all" ? "Staff Directory" : 
-               activeCategory === "dentists" ? "Dentists" :
-               activeCategory === "hygienists" ? "Hygienists" : "Staff Schedule"}
-            </CardTitle>
-            <Button size="sm">
-              {activeCategory === "scheduling" ? (
-                <>
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Schedule Shift
-                </>
-              ) : (
-                <>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Add Staff
-                </>
-              )}
-            </Button>
-          </div>
-          <CardDescription>
-            {activeCategory === "scheduling" ? "Manage staff schedules and shifts" : "Manage your team and their information"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
-            <div className="p-4 text-center text-muted-foreground">
-              {activeCategory === "all" ? "Staff directory" : 
-               activeCategory === "dentists" ? "Dentists directory" :
-               activeCategory === "hygienists" ? "Hygienists directory" : "Staff schedule"} will appear here
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="time-tracking" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="time-tracking">
+            <Clock className="h-4 w-4 mr-2" />
+            Time Tracking
+          </TabsTrigger>
+          <TabsTrigger value="schedule">
+            <CalendarIcon className="h-4 w-4 mr-2" />
+            Staff Schedule
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="time-tracking" className="mt-4">
+          <TimeTrackingTab />
+        </TabsContent>
+        <TabsContent value="schedule" className="mt-4">
+          <StaffCalendarTab />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
